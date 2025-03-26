@@ -19,7 +19,11 @@ class _DashboardState extends State<Dashboard> {
         backgroundColor: Colors.blue, // Blue background
         centerTitle: true, // Center the title
       ),
-      body: ListView(), // Empty ListView
+      body: Column(children: [
+        Text('dashboard'),
+      ],
+        
+      ), // Empty ListView
     );
   }
 }

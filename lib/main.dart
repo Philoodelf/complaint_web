@@ -1,9 +1,19 @@
+import 'package:complaint_web/core/api/api_consumer.dart';
+import 'package:complaint_web/core/api/dio_consumer.dart';
+import 'package:complaint_web/cubit/usercubit.dart';
 import 'package:complaint_web/responsive/responsive_screen.dart';
 import 'package:complaint_web/screens/login.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    BlocProvider(
+      create: (context) => UserCubit(DioConsumer(dio: Dio()) as ApiConsumer),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -15,11 +25,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Admin Complaint',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home:  LoginScreen(), 
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: LoginScreen(),
     );
   }
 }
-
