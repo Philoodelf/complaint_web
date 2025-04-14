@@ -10,7 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 void main() {
   runApp(
     BlocProvider(
-      create: (context) => UserCubit(DioConsumer(dio: Dio()) as ApiConsumer),
+      create: (context) => UserCubit(DioConsumer(dio: Dio()) ),
       child: const MyApp(),
     ),
   );

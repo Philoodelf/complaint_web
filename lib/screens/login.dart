@@ -62,6 +62,9 @@ class _LoginScreenState extends State<LoginScreen> {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => Dashboard()),
           );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Logged In')));
         } else if (state is SendFailure) {
           ScaffoldMessenger.of(
             context,
@@ -122,6 +125,9 @@ class _LoginScreenState extends State<LoginScreen> {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => Dashboard()),
           );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Logged In')));
         } else if (state is SendFailure) {
           ScaffoldMessenger.of(
             context,
@@ -182,6 +188,9 @@ class _LoginScreenState extends State<LoginScreen> {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => Dashboard()),
           );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Logged In')));
         } else if (state is SendFailure) {
           ScaffoldMessenger.of(
             context,
@@ -226,12 +235,17 @@ class _LoginScreenState extends State<LoginScreen> {
                           ? const CircularProgressIndicator()
                           : ElevatedButton(
                             onPressed: () {
-                              print(
-                                "👤 Username: '${usernameController.text}'",
-                              );
-                              print(
-                                "🔑 Password: '${passwordController.text}'",
-                              );
+                              if (usernameController.text.isEmpty ||
+                                  passwordController.text.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Please enter both username and password!',
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
                               context.read<UserCubit>().logIn(
                                 usernameController.text,
                                 passwordController.text,

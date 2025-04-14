@@ -13,40 +13,84 @@ class UserCubit extends Cubit<UserState> {
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
-  Future<void> logIn(String userName, String password) async {
-    // if (api == null) {
-    //   print("❌ Error: ApiConsumer is null!");
-    //   return;
-    // }
-    try {
-      emit(PostLoading());
-      Map<String, dynamic> loginData = {
-        "userName": userName,
-        "password": password,
-      };
+  // Future<void> logIn(String userName, String password) async {
+  //   // if (api == null) {
+  //   //   print("❌ Error: ApiConsumer is null!");
+  //   //   return;
+  //   // }
+  //   try {
+  //     emit(PostLoading());
+  //     Map<String, dynamic> loginData = {
+  //       "userName": userName,
+  //       "password": password,
+  //     };
 
-      Response? response = await api.post(Endpoints.login, data: loginData);
-      if (response != null && response.statusCode == 200) {
-        print("✅ Login successfully!");
-        emit(SendSuccess());
+  //     Response? response = await api.post(Endpoints.login, data: loginData);
+  //     if (response != null && response.statusCode == 200 && response.data['token'] != null) {
+  //       print("✅ Login successfully!");
+  //       emit(SendSuccess());
 
-        String? token = response.data["token"];
-        if (token != null) {
-          api.setAuthToken(token);
-        }
+  //       String token = response.data["token"];
+  //       //if (token != null) {
+  //         api.setAuthToken(token);
+  //      // }
 
-        await Future.delayed(const Duration(seconds: 2));
-        emit(UserInitial());
-      } else {
-        print("⚠️ Login failed: ${response?.statusMessage}");
+  //       await Future.delayed(const Duration(seconds: 2));
+  //       emit(UserInitial());
+  //     } else {
+  //       print("⚠️ Login failed: ${response?.statusMessage}");
       
-        emit(
-          SendFailure(errMessage: response?.statusMessage ?? "Unknown error"),
-        );
+  //       emit(
+  //         SendFailure(errMessage:  response?.data["message"] ?? "Invalid username or password"),
+  //         //response?.statusMessage ?? "Unknown error"),
+  //       );
+  //     }
+  //   } on Exception catch (e) {
+  //     print("❌ Error posting complaint: $e");
+  //     //emit(SendFailure(errMessage: ));
+  //   }
+  // }
+
+  Future<void> logIn(String userName, String password) async {
+  try {
+    emit(PostLoading());
+
+    Map<String, dynamic> loginData = {
+      "userName": userName,
+      "password": password,
+    };
+
+    Response? response = await api.post(Endpoints.login, data: loginData);
+    print("📦 Response: ${response?.data}");
+
+    if (response != null &&
+        response.statusCode == 200 &&
+        response.data['result'] == true &&
+        response.data['token'] != null) {
+
+      print("✅ Login successfully!");
+      emit(SendSuccess());
+
+      String token = response.data["token"];
+      api.setAuthToken(token);
+
+      await Future.delayed(const Duration(seconds: 2));
+      emit(UserInitial());
+
+    } else {
+      String errorMsg = "Invalid username or password";
+
+      if (response?.data['errors'] != null && response!.data['errors'].isNotEmpty) {
+        errorMsg = response.data['errors'][0];  // Arabic error from backend
       }
-    } on Exception catch (e) {
-      print("❌ Error posting complaint: $e");
-      //emit(SendFailure(errMessage: ));
+
+      print("⚠️ Login failed: $errorMsg");
+      emit(SendFailure(errMessage: errorMsg));
     }
+  } on Exception catch (e) {
+    print("❌ Error posting complaint: $e");
+    emit(SendFailure(errMessage: "An error occurred: $e"));
   }
+}
+
 }
