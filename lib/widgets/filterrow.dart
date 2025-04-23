@@ -1,4 +1,7 @@
+import 'package:complaint_web/cubit/usercubit.dart';
+import 'package:complaint_web/cubit/userstate.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ResponsiveFilterRow extends StatefulWidget {
   const ResponsiveFilterRow({super.key});
@@ -17,6 +20,12 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
   DateTime? toDate;
 
   final TextEditingController searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<UserCubit>().fetchCategories(); // Call your cubit method here
+  }
 
   Future<void> _selectDate(BuildContext context, bool isFromDate) async {
     DateTime? picked = await showDatePicker(
@@ -124,7 +133,7 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
                 children: [
                   _buildDropdownPriority('Priority'),
                   _buildDropdownSatatus('Status'),
-                  _buildDropdownCategory('Category'),
+                  
                 ],
               ),
               Row(
@@ -133,6 +142,12 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
                   _buildDropdownAssignTo('Assigned To'),
                   _buildDatePickerFrom('From Date'),
                   _buildDatePickerTo('To Date'),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  _buildDropdownCategory('Category'),
                 ],
               ),
             ],
@@ -205,20 +220,43 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
   }
 
   Widget _buildDropdownCategory(String label) {
-    return DropdownButton<String>(
-      value: selectedCategory,
-      hint: Text(label),
-      onChanged: (String? newValue) {
-        setState(() {
-          selectedCategory = newValue;
-        });
+    return BlocBuilder<UserCubit, UserState>(
+      builder: (context, state) {
+        final cubit = context.read<UserCubit>();
+        final List<Map<String, dynamic>> categories = cubit.categories;
+
+        print("📦 Categories fetched: $categories");
+        print("🧾 Categories loaded: ${categories.length}");
+
+        // 🔒 Safety: If selectedCategory is no longer in the list, clear it
+        if (selectedCategory != null &&
+            !categories.any(
+              (cat) => cat["id"].toString() == selectedCategory,
+            )) {
+          selectedCategory = null;
+        }
+
+        return DropdownButton<String>(
+          value: selectedCategory,
+          hint: Text(label),
+          //isExpanded: true, // ✅ Improves layout on small screens
+          items:
+              categories.map((category) {
+                return DropdownMenuItem<String>(
+                  value: category["id"].toString(),
+                  child: Text(
+                    category["name"].toString().trim(),
+                  ), // clean newline
+                );
+              }).toList(),
+          onChanged: (value) {
+            setState(() {
+              selectedCategory = value;
+              print("✅ Selected category ID: $selectedCategory");
+            });
+          },
+        );
       },
-      items:
-          ["Bug", "Feature Request", "Inquiry"]
-              .map(
-                (value) => DropdownMenuItem(value: value, child: Text(value)),
-              )
-              .toList(),
     );
   }
 

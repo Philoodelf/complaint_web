@@ -9,3 +9,8 @@ final class SendFailure extends UserState {
 
 final class SendSuccess extends UserState {}
 final class PostLoading extends UserState {}
+
+final class CategoriesLoaded extends UserState { 
+  final List<Map<String, dynamic>> categories;
+  CategoriesLoaded(this.categories);
+}

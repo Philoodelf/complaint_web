@@ -1,4 +1,6 @@
 import 'package:complaint_web/responsive/responsive_screen.dart';
+import 'package:complaint_web/screens/login.dart';
+import 'package:complaint_web/shared_preferences/storage_token.dart';
 import 'package:complaint_web/widgets/complaintListView.dart';
 import 'package:complaint_web/widgets/filterrow.dart';
 import 'package:flutter/material.dart';
@@ -24,8 +26,11 @@ class _DashboardState extends State<Dashboard> {
             ),
             const Spacer(), // Pushes the title to the right
             ElevatedButton(
-              onPressed: () {
-                // Add your action here
+              onPressed: () async {
+                await TokenStorage.clearToken();
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
               },
               child: Text('Log Out'),
             ),

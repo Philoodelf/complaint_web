@@ -5,13 +5,12 @@ import 'package:dio/dio.dart';
 class DioConsumer extends ApiConsumer {
   final Dio dio;
 
-  DioConsumer({required this.dio}){
-    dio.options.baseUrl=Endpoints.baseUrl;
+  DioConsumer({required this.dio}) {
+    dio.options.baseUrl = Endpoints.baseUrl;
     dio.options.headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-  };
-
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    };
   }
   @override
   void setAuthToken(String token) {
@@ -33,9 +32,14 @@ class DioConsumer extends ApiConsumer {
     String path, {
     Object? data,
     Map<String, dynamic>? queryParameter,
-  }) {
-    // TODO: implement get
-    throw UnimplementedError();
+  }) async {
+    try {
+      final response = await dio.get(path, queryParameters: queryParameter);
+      return response;
+    } on DioException catch (e) {
+      print("❌ Dio GET Error: ${e.response?.data ?? e.message}");
+      return e.response;
+    }
   }
 
   @override
@@ -48,53 +52,22 @@ class DioConsumer extends ApiConsumer {
     throw UnimplementedError();
   }
 
-  // @override
-  // Future<Response?> post(
-  //   String path, {
-  //   dynamic data,
-  //   Map<String, dynamic>? queryParameter,
-  //   bool isFormData = false
-  // }) async{
-  //   try {
-  //     final response = await dio.post(
-  //       path,
-  //       data: isFormData ? FormData.fromMap(data) : data,
-  //       queryParameters: queryParameter,
-  //       options: Options(
-  //       headers: {
-  //         "Content-Type": isFormData
-  //             ? "multipart/form-data"
-  //             : "application/json",
-  //         "Accept": "application/json",
-  //       },
-  //     ),
-  //     );
-  //     return response;
-  //   } on Exception catch (e) {
-  //     switch (e.runtimeType) {
-  //       case DioExceptionType.badResponse:
-  //         print('error_Exception');
-  //     }
-  //   }
-  //   return null;
   @override
-Future<Response?> post(
-  String path, {
-  dynamic data,
-  Map<String, dynamic>? queryParameter,
-}) async {
-  try {
-    final response = await dio.post(
-      path,
-      data: data,  // No need for FormData if API expects JSON
-      queryParameters: queryParameter,
-    );
-    return response;
-  } on DioException catch (e) {
-    print("❌ DioException: ${e.response?.data ?? e.message}");
-    return e.response;
+  Future<Response?> post(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameter,
+  }) async {
+    try {
+      final response = await dio.post(
+        path,
+        data: data, // No need for FormData if API expects JSON
+        queryParameters: queryParameter,
+      );
+      return response;
+    } on DioException catch (e) {
+      print("❌ DioException: ${e.response?.data ?? e.message}");
+      return e.response;
+    }
   }
 }
-
-  }
-
