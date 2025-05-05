@@ -1,6 +1,7 @@
 import 'package:complaint_web/core/api/api_consumer.dart';
 import 'package:complaint_web/core/api/endpoints.dart';
 import 'package:complaint_web/cubit/userstate.dart';
+import 'package:complaint_web/model/complaints_model.dart';
 import 'package:complaint_web/shared_preferences/storage_token.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -105,4 +106,126 @@ class UserCubit extends Cubit<UserState> {
       emit(SendFailure(errMessage: "Error fetching categories."));
     }
   }
+
+
+
+  // get all complains
+  Future<void> fetchComplaints(
+   // {required String userId}
+    ) async {
+    emit(PostLoading());
+
+    try {
+      final response = await api.get(
+        Endpoints.allComplaints,
+
+     // queryParameters: {"userId": userId},
+    //  options: Options(
+    //     headers: {
+    //       "userId": userId.toString() ?? "", // User ID in the header
+    //       "PageNo": pageNo.toString(),        // Page Number in the header
+    //       "NoOfItems": noOfItems.toString(),  // Number of items per page in the header
+    //     },
+    //   ),
+    // headers: {
+    //     "userId": userId.toString(),  // Headers must be strings
+    //     "PageNo": "1",
+    //     "NoOfItems": "100",
+    //   },
+      );
+      print("📡 Response status code: ${response.statusCode}");
+    print("📡 Response body: ${response.data}");
+
+      if (response.statusCode == 200 && response.data['result'] == true) {
+        final List<dynamic> jsonList = response.data['data'] ?? [];
+
+        final complaints =
+            jsonList
+                .map((item) => Complaint.fromJson(item as Map<String, dynamic>))
+                .toList();
+
+        emit(UserLoaded(complaints));
+        print("✅ Loaded complaints count: ${complaints.length}");
+      } else {
+        emit(UserError("Failed to load complaints: Invalid response"));
+      }
+    } on DioError catch (e) {
+       if (e.response != null) {
+      print("🔴 Dio error response data: ${e.response?.data}");
+      print("🔴 Dio error status code: ${e.response?.statusCode}");
+    } else {
+      print("🔴 Dio error without response: ${e.message}");
+    }
+      emit(UserError("Dio error: ${e.message}"));
+
+    } catch (e) {
+      emit(UserError("Unexpected error: ${e.toString()}"));
+      print("unexpected ");
+    }
+  }
+
+  // text
+  // Future<void> fetchComplaints({required int userId}) async {
+  //   emit(PostLoading());
+
+  //   try {
+  //     print("📡 Initiating API call...");
+
+  //     // final Response response =
+  //     //     await api.get(
+  //     //           Endpoints.allComplaints,
+  //     //           headers: {
+  //     //             "userId": userId.toString(),
+  //     //             "PageNo": "1",
+  //     //             "NoOfItems": "100",
+  //     //           },
+  //     //         )
+  //          //   as Response;
+  //     final response =
+  //         await api.get(
+  //               Endpoints.allComplaints,
+  //               headers: {
+  //                 "userId": userId.toString(),
+  //                 "PageNo": "1",
+  //                 "NoOfItems": "100",
+  //               },
+  //             )
+  //             as Response?;
+
+  //     print("📡 Response status code: ${response?.statusCode}");
+  //     print("📡 Response body: ${response?.data}");
+
+  //     try {
+  //       if (response?.statusCode == 200 && response?.data['result'] == true) {
+  //         final List<dynamic> jsonList = response?.data['data'] ?? [];
+
+  //         final complaints =
+  //             jsonList
+  //                 .map(
+  //                   (item) => Complaint.fromJson(item as Map<String, dynamic>),
+  //                 )
+  //                 .toList();
+
+  //         emit(UserLoaded(complaints));
+  //         print("✅ Loaded complaints count: ${complaints.length}");
+  //       } else {
+  //         emit(UserError("Failed to load complaints: Invalid response"));
+  //       }
+  //     } catch (innerError) {
+  //       print("❌ Error parsing or processing response: $innerError");
+  //       emit(UserError("Processing error: $innerError"));
+  //     }
+  //   } on DioError catch (e) {
+  //     if (e.response != null) {
+  //       print("🔴 Dio error response data: ${e.response?.data}");
+  //       print("🔴 Dio error status code: ${e.response?.statusCode}");
+  //     } else {
+  //       print("🔴 Dio error without response: ${e.message}");
+  //     }
+  //     emit(UserError("Dio error: ${e.message}"));
+  //   } catch (e) {
+  //     print("❌ Unexpected error: $e");
+  //     emit(UserError("Unexpected error: ${e.toString()}"));
+  //   }
+  // }
 }

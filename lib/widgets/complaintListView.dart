@@ -1,10 +1,12 @@
 import 'package:complaint_web/cubit/usercubit.dart';
 import 'package:complaint_web/cubit/userstate.dart';
+import 'package:complaint_web/model/complaints_model.dart';
 import 'package:complaint_web/responsive/responsive_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ComplaintListView extends StatefulWidget {
+  // final int userId;
   const ComplaintListView({super.key});
 
   @override
@@ -15,7 +17,9 @@ class _ComplaintListViewState extends State<ComplaintListView> {
   @override
   void initState() {
     super.initState();
-    context.read<UserCubit>().fetchAllComplaintStatuses(); // <-- here!
+    context.read<UserCubit>().fetchComplaints(
+      // userId:391
+    ); // No userId = get all complaints
   }
 
   String? _selectedType;
@@ -118,67 +122,77 @@ class _ComplaintListViewState extends State<ComplaintListView> {
   Widget _buildDesktopListView() {
     return BlocBuilder<UserCubit, UserState>(
       builder: (context, state) {
-        var cubit = context.read<UserCubit>();
-
         if (state is PostLoading) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (cubit.complaints.isEmpty) {
-          return const Center(child: Text("No complaints found."));
-        }
-        print("🧾 Complaints Loaded: ${cubit.complaints.length}");
+        if (state is UserLoaded) {
+          final complaints = state.complaints;
 
-        return Column(
-          children: [
-            _buildHeaderRow(),
-            SingleChildScrollView(
-              child: ListView.builder(
-                itemCount: cubit.complaints.length,
-                itemBuilder: (context, index) {
-                  var complaint = cubit.complaints[index];
-                  return GestureDetector(
-                    onTap: () {
-                      _showComplaintDetails(context, {
-                        "serial": complaint["serial"] ?? "N/A",
-                        "details": complaint["details"] ?? "N/A",
-                        "status": complaint["status"] ?? "N/A",
-                        "type": complaint["type"] ?? "N/A",
-                        "priority": complaint["priority"] ?? "N/A",
-                        "submissionDate": complaint["submissionDate"] ?? "N/A",
-                        "file": complaint["file"] ?? "N/A",
-                        "assignedTo": complaint["assignedTo"] ?? "N/A",
-                      });
-                    },
-                    child: Card(
-                      margin: const EdgeInsets.symmetric(
-                        vertical: 4,
-                        horizontal: 10,
-                      ),
-                      elevation: 3,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Text("Complaint ${complaint['serial']}"),
-                            Text(" ${complaint['details']}"),
-                            Text(" ${complaint['status'] ?? "N/A"}"),
-                            Text(" ${complaint['type']}"),
-                            Text(" ${complaint['priority'] ?? "N/A"}"),
-                            Text(" ${complaint['submissionDate']}"),
-                            Text(" ${complaint['file'] ?? "N/A"}"),
-                            Text(" ${complaint['assignedTo'] ?? "N/A"}"),
-                          ],
+          if (complaints.isEmpty) {
+            return const Center(child: Text("No complaints found."));
+          }
+
+          print("🧾 Complaints Loaded: ${complaints.length}");
+
+          return Column(
+            children: [
+              _buildHeaderRow(),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: complaints.length,
+                  itemBuilder: (context, index) {
+                    final complaint = complaints[index];
+
+                    return GestureDetector(
+                      onTap: () {
+                        _showComplaintDetails(context, {
+                          "serial": complaint.serialNo ?? "N/A",
+                          "details": complaint.description ?? "N/A",
+                          "status": complaint.statusName ?? "N/A",
+                          "type": complaint.typecomplaintName ?? "N/A",
+                          "priority": complaint.priority?.toString() ?? "N/A",
+                          "submissionDate": complaint.date ?? "N/A",
+                          "file": complaint.attachComplaint ?? "N/A",
+                          "assignedTo": complaint.assignTo ?? "N/A",
+                        });
+                      },
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 4,
+                          horizontal: 10,
+                        ),
+                        elevation: 3,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Text("Complaint ${complaint.serialNo ?? 'N/A'}"),
+                              Text("${complaint.description ?? ''}"),
+                              Text("${complaint.statusName ?? 'N/A'}"),
+                              Text("${complaint.typecomplaintName ?? ''}"),
+                              Text("${complaint.priority ?? 'N/A'}"),
+                              Text("${complaint.date ?? 'N/A'}"),
+                              Text("${complaint.attachComplaint ?? 'N/A'}"),
+                              Text("${complaint.assignTo ?? 'N/A'}"),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
-        );
+            ],
+          );
+        }
+
+        if (state is UserError) {
+          return Center(child: Text("Error: ${state.message}"));
+        }
+
+        return const SizedBox(); // Default empty view for UserInitial
       },
     );
   }
@@ -244,62 +258,72 @@ class _ComplaintListViewState extends State<ComplaintListView> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (cubit.complaints.isEmpty) {
-          return const Center(child: Text("No complaints found."));
-        }
+        if (state is UserLoaded) {
+          final complaints = state.complaints;
 
-        return Column(
-          children: [
-            _buildHeaderRow(),
-            Expanded(
-              child: ListView.builder(
-                itemCount: cubit.complaints.length,
-                itemBuilder: (context, index) {
-                  var complaint = cubit.complaints[index];
-                  return GestureDetector(
-                    onTap: () {
-                      _showComplaintDetails(context, {
-                        "serial": complaint["serial"] ?? "N/A",
-                        "details": complaint["details"] ?? "N/A",
-                        "status": complaint["status"] ?? "N/A",
-                        "type": complaint["type"] ?? "N/A",
-                        "priority": complaint["priority"] ?? "N/A",
-                        "submissionDate": complaint["submissionDate"] ?? "N/A",
-                        "file": complaint["file"] ?? "N/A",
-                        "assignedTo": complaint["assignedTo"] ?? "N/A",
-                      });
-                    },
-                    child: Card(
-                      margin: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 16,
-                      ),
-                      elevation: 2,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Complaint ${complaint['serial'] ?? 'N/A'}"),
-                            Text(
-                              "${complaint['details'] ?? 'No details available'}",
-                            ),
-                            Text("${complaint['status'] ?? 'N/A'}"),
-                            Text("${complaint['type'] ?? 'N/A'}"),
-                            Text("${complaint['priority'] ?? 'N/A'}"),
-                            Text("${complaint['submissionDate'] ?? 'N/A'}"),
-                            Text("${complaint['file'] ?? 'No file attached'}"),
-                            Text("${complaint['assignedTo'] ?? 'N/A'}"),
-                          ],
+          if (complaints.isEmpty) {
+            return const Center(child: Text("No complaints found."));
+          }
+
+          print("🧾 Complaints Loaded: ${complaints.length}");
+
+          return Column(
+            children: [
+              _buildHeaderRow(),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: complaints.length,
+                  itemBuilder: (context, index) {
+                    final complaint = complaints[index];
+                    return GestureDetector(
+                      onTap: () {
+                        _showComplaintDetails(context, {
+                          "serial": complaint.serialNo ?? "N/A",
+                          "details": complaint.description ?? "N/A",
+                          "status": complaint.statusName ?? "N/A",
+                          "type": complaint.typecomplaintName ?? "N/A",
+                          "priority": complaint.priority?.toString() ?? "N/A",
+                          "submissionDate": complaint.date ?? "N/A",
+                          "file": complaint.attachComplaint ?? "N/A",
+                          "assignedTo": complaint.assignTo ?? "N/A",
+                        });
+                      },
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 16,
+                        ),
+                        elevation: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Complaint ${complaint.serialNo ?? 'N/A'}"),
+                              Text("${complaint.description ?? ''}"),
+                              Text("${complaint.statusName ?? 'N/A'}"),
+                              Text("${complaint.typecomplaintName ?? ''}"),
+                              Text("${complaint.priority ?? 'N/A'}"),
+                              Text("${complaint.date ?? 'N/A'}"),
+                              Text("${complaint.attachComplaint ?? 'N/A'}"),
+                              Text("${complaint.assignTo ?? 'N/A'}"),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
-        );
+            ],
+          );
+        }
+
+        if (state is UserError) {
+          return Center(child: Text("Error: ${state.message}"));
+        }
+
+        return const SizedBox();
       },
     );
   }
@@ -368,67 +392,72 @@ class _ComplaintListViewState extends State<ComplaintListView> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (cubit.complaints.isEmpty) {
-          return const Center(child: Text("No complaints found."));
-        }
+        if (state is UserLoaded) {
+          final complaints = state.complaints;
 
-        return Column(
-          children: [
-            _buildHeaderRow(),
-            Expanded(
-              child: ListView.builder(
-                itemCount: cubit.complaints.length,
-                itemBuilder: (context, index) {
-                  var complaint = cubit.complaints[index];
-                  return GestureDetector(
-                    onTap: () {
-                      _showComplaintDetails(context, {
-                        "serial": complaint["serial"] ?? "N/A",
-                        "details": complaint["details"] ?? "N/A",
-                        "status": complaint["status"] ?? "N/A",
-                        "type": complaint["type"] ?? "N/A",
-                        "priority": complaint["priority"] ?? "N/A",
-                        "submissionDate": complaint["submissionDate"] ?? "N/A",
-                        "file": complaint["file"] ?? "N/A",
-                        "assignedTo": complaint["assignedTo"] ?? "N/A",
-                      });
-                    },
-                    child: Card(
-                      margin: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 16,
-                      ),
-                      elevation: 2,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Complaint ${complaint['serial'] ?? 'N/A'}",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              "${complaint['details'] ?? 'No details available'}",
-                            ),
-                            Text("${complaint['status'] ?? 'N/A'}"),
-                            Text("${complaint['type'] ?? 'N/A'}"),
-                            Text("${complaint['priority'] ?? 'N/A'}"),
-                            Text("${complaint['submissionDate'] ?? 'N/A'}"),
-                            Text("${complaint['file'] ?? 'No file attached'}"),
-                            Text("${complaint['assignedTo'] ?? 'N/A'}"),
-                          ],
+          if (complaints.isEmpty) {
+            return const Center(child: Text("No complaints found."));
+          }
+
+          print("🧾 Complaints Loaded: ${complaints.length}");
+
+          return Column(
+            children: [
+              _buildHeaderRow(),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: complaints.length,
+                  itemBuilder: (context, index) {
+                    final complaint = complaints[index];
+                    return GestureDetector(
+                      onTap: () {
+                        _showComplaintDetails(context, {
+                          "serial": complaint.serialNo ?? "N/A",
+                          "details": complaint.description ?? "N/A",
+                          "status": complaint.statusName ?? "N/A",
+                          "type": complaint.typecomplaintName ?? "N/A",
+                          "priority": complaint.priority?.toString() ?? "N/A",
+                          "submissionDate": complaint.date ?? "N/A",
+                          "file": complaint.attachComplaint ?? "N/A",
+                          "assignedTo": complaint.assignTo ?? "N/A",
+                        });
+                      },
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 16,
+                        ),
+                        elevation: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Complaint ${complaint.serialNo ?? 'N/A'}"),
+                              Text("${complaint.description ?? ''}"),
+                              Text("${complaint.statusName ?? 'N/A'}"),
+                              Text("${complaint.typecomplaintName ?? ''}"),
+                              Text("${complaint.priority ?? 'N/A'}"),
+                              Text("${complaint.date ?? 'N/A'}"),
+                              Text("${complaint.attachComplaint ?? 'N/A'}"),
+                              Text("${complaint.assignTo ?? 'N/A'}"),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
-        );
+            ],
+          );
+        }
+
+        if (state is UserError) {
+          return Center(child: Text("Error: ${state.message}"));
+        }
+
+        return const SizedBox();
       },
     );
   }

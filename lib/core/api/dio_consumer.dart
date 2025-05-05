@@ -10,6 +10,9 @@ class DioConsumer extends ApiConsumer {
     dio.options.headers = {
       "Content-Type": "application/json",
       "Accept": "application/json",
+      'PageNo': '1',
+      'NoOfItems': '10',
+      'userId': "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
     };
   }
   @override
@@ -21,32 +24,58 @@ class DioConsumer extends ApiConsumer {
   Future delete(
     String path, {
     Object? data,
-    Map<String, dynamic>? queryParameter,
+    Map<String, dynamic>? queryParameters,
   }) {
     // TODO: implement delete
     throw UnimplementedError();
   }
 
-  @override
-  Future get(
-    String path, {
-    Object? data,
-    Map<String, dynamic>? queryParameter,
-  }) async {
-    try {
-      final response = await dio.get(path, queryParameters: queryParameter);
-      return response;
-    } on DioException catch (e) {
-      print("❌ Dio GET Error: ${e.response?.data ?? e.message}");
-      return e.response;
-    }
+//   @override
+//  Future<Response?> get(
+//   String path, {
+//   Object? data,
+//   Map<String, dynamic>? queryParameters,
+//   Map<String, dynamic>? headers,
+// }) async {
+//     try {
+//       final response = await dio.get(
+//         path,
+//         queryParameters: queryParameters,
+//         options: Options( headers: headers
+//           // headers: headers, // Set headers here
+//         ),
+//       );
+//       return response;
+//     } on DioException catch (e) {
+//       print("❌ Dio GET Error: ${e.response?.data ?? e.message}");
+//       return e.response;
+//     }
+//   }
+   @override
+Future<Response?> get(
+  String path, {
+  Object? data,
+  Map<String, dynamic>? queryParameters,
+  Map<String, dynamic>? headers,
+}) async {
+  try {
+    final response = await dio.get(
+      path,
+      queryParameters: queryParameters,
+      options: Options(headers: headers),
+    );
+    return response;
+  } on DioException catch (e) {
+    print("❌ Dio GET Error: ${e.response?.data ?? e.message}");
+    return e.response; // May be null
   }
+}
 
   @override
   Future patch(
     String path, {
     Object? data,
-    Map<String, dynamic>? queryParameter,
+    Map<String, dynamic>? queryParameters,
   }) {
     // TODO: implement patch
     throw UnimplementedError();
@@ -56,13 +85,13 @@ class DioConsumer extends ApiConsumer {
   Future<Response?> post(
     String path, {
     dynamic data,
-    Map<String, dynamic>? queryParameter,
+    Map<String, dynamic>? queryParameters,
   }) async {
     try {
       final response = await dio.post(
         path,
         data: data, // No need for FormData if API expects JSON
-        queryParameters: queryParameter,
+        queryParameters: queryParameters,
       );
       return response;
     } on DioException catch (e) {
