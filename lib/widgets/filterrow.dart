@@ -28,23 +28,34 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
   }
 
   Future<void> _selectDate(BuildContext context, bool isFromDate) async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
+  DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2100),
+  );
 
-    if (picked != null) {
-      setState(() {
-        if (isFromDate) {
-          fromDate = picked;
-        } else {
-          toDate = picked;
-        }
-      });
-    }
+  if (picked != null) {
+    setState(() {
+      if (isFromDate) {
+        fromDate = picked;
+      } else {
+        toDate = picked;
+      }
+    });
+
+    final adjustedToDate = toDate?.add(const Duration(hours: 23, minutes: 59, seconds: 59));
+
+    print("📅 Filtering from: $fromDate to: $adjustedToDate");
+
+    // 🔁 Re-fetch filtered data
+    context.read<UserCubit>().fetchComplaints(
+      fromDate: fromDate,
+      toDate: toDate,
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -280,10 +291,7 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
 
   Widget _buildDatePickerFrom(String label) {
     return ElevatedButton(
-      onPressed: () async {
-        _selectDate(context, true);
-        // Show Date Picker Dialog
-      },
+      onPressed: () => _selectDate(context, true),
       child: Text(
         fromDate == null
             ? label
@@ -295,10 +303,7 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
 
   Widget _buildDatePickerTo(String label) {
     return ElevatedButton(
-      onPressed: () async {
-        _selectDate(context, false);
-        // Show Date Picker Dialog
-      },
+      onPressed: () => _selectDate(context, false),
       child: Text(
         toDate == null
             ? label
@@ -307,4 +312,18 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
       ),
     );
   }
+
+//   void _applyFilters() {
+//   final cubit = context.read<UserCubit>();
+//   cubit.fetchComplaints(
+//     userId: "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
+//     search: searchController.text,
+//     priority: selectedPriority,
+//     status: selectedStatus,
+//     categoryId: selectedCategory,
+//     assignedTo: selectedAssignedTo,
+//     fromDate: fromDate,
+//     toDate: toDate,
+//   );
+// }
 }

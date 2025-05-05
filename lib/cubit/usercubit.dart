@@ -90,7 +90,7 @@ class UserCubit extends Cubit<UserState> {
         Endpoints.categoryComplaint,
       ); // replace with actual endpoint
 
-      print("📦 Categories Response: ${response?.data}");
+     // print("📦 Categories Response: ${response?.data}");
 
       if (response != null &&
           response.statusCode == 200 &&
@@ -107,57 +107,95 @@ class UserCubit extends Cubit<UserState> {
     }
   }
 
-
-
   // get all complains
   Future<void> fetchComplaints(
-   // {required String userId}
-    ) async {
+    {DateTime? fromDate, DateTime? toDate}
+  
+  ) async {
     emit(PostLoading());
 
     try {
-      final response = await api.get(
-        Endpoints.allComplaints,
+      print("📅 Filtering from: $fromDate to: $toDate");
+      
 
-     // queryParameters: {"userId": userId},
-    //  options: Options(
-    //     headers: {
-    //       "userId": userId.toString() ?? "", // User ID in the header
-    //       "PageNo": pageNo.toString(),        // Page Number in the header
-    //       "NoOfItems": noOfItems.toString(),  // Number of items per page in the header
-    //     },
-    //   ),
-    // headers: {
-    //     "userId": userId.toString(),  // Headers must be strings
-    //     "PageNo": "1",
-    //     "NoOfItems": "100",
-    //   },
-      );
+      final queryParams = <String, dynamic>{};
+
+    if (fromDate != null) {
+      queryParams['fromDate'] = fromDate.toIso8601String().split('T')[0]; // YYYY-MM-DD
+    }
+
+    if (toDate != null) {
+      queryParams['toDate'] = toDate.toIso8601String().split('T')[0];
+    }
+
+  
+
+      final response = await api.get(Endpoints.allComplaints,  queryParameters: queryParams,);
       print("📡 Response status code: ${response.statusCode}");
-    print("📡 Response body: ${response.data}");
+    //  print("📡 Response body: ${response.data}");
 
       if (response.statusCode == 200 && response.data['result'] == true) {
         final List<dynamic> jsonList = response.data['data'] ?? [];
 
+        if (jsonList == null) {
+        print("❗ API returned null for 'data'");
+        emit(UserError("API returned null for complaints list."));
+        return;
+      }
+
+      print("📦 Total complaints received: ${jsonList.length}");
+
         final complaints =
             jsonList
-                .map((item) => Complaint.fromJson(item as Map<String, dynamic>))
-                .toList();
+                .map((item) {
+                  // date filter remove nullsafety 
+           try {
+          final complaintDateStr = item["date"];
+          if (complaintDateStr == null) {
+            print("⚠️ Skipping item with no date: $item");
+            return null;
+          }
 
+          final complaintDate = DateTime.parse(complaintDateStr);
+          print("🗓️ Complaint Date: $complaintDate");
+
+          bool isWithinRange = true;
+
+          if (fromDate != null && complaintDate.isBefore(fromDate)) {
+            isWithinRange = false;
+          }
+
+          if (toDate != null && complaintDate.isAfter(toDate)) {
+            isWithinRange = false;
+          }
+
+          if (isWithinRange) {
+            return Complaint.fromJson(item as Map<String, dynamic>);
+          } else {
+            print("⛔ Outside date range: $complaintDate");
+            return null;
+          }
+        } catch (e) {
+          print("❌ Error parsing item: $item");
+          print("   ↪️ Reason: $e");
+          return null;
+        }
+      }).whereType<Complaint>().toList(); // Removes nulls safely
+
+      print("✅ Complaints after filtering: ${complaints.length}");
         emit(UserLoaded(complaints));
         print("✅ Loaded complaints count: ${complaints.length}");
       } else {
         emit(UserError("Failed to load complaints: Invalid response"));
       }
     } on DioError catch (e) {
-       if (e.response != null) {
-      print("🔴 Dio error response data: ${e.response?.data}");
-      print("🔴 Dio error status code: ${e.response?.statusCode}");
-    } else {
-      print("🔴 Dio error without response: ${e.message}");
-    }
+      if (e.response != null) {
+        print("🔴 Dio error response data: ${e.response?.data}");
+        print("🔴 Dio error status code: ${e.response?.statusCode}");
+      } else {
+        print("🔴 Dio error without response: ${e.message}");
+      }
       emit(UserError("Dio error: ${e.message}"));
-
     } catch (e) {
       emit(UserError("Unexpected error: ${e.toString()}"));
       print("unexpected ");
