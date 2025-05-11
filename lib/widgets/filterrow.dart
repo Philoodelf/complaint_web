@@ -19,43 +19,50 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
   DateTime? fromDate;
   DateTime? toDate;
 
+  List<Map<String, dynamic>> complaintStatuses = [];
+
   final TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    context.read<UserCubit>().fetchCategories(); // Call your cubit method here
+    context.read<UserCubit>().fetchCategories(
+      // typeComplaintId: selectedCategory,
+    );
+    context.read<UserCubit>().fetchComplaints();
   }
 
   Future<void> _selectDate(BuildContext context, bool isFromDate) async {
-  DateTime? picked = await showDatePicker(
-    context: context,
-    initialDate: DateTime.now(),
-    firstDate: DateTime(2000),
-    lastDate: DateTime(2100),
-  );
-
-  if (picked != null) {
-    setState(() {
-      if (isFromDate) {
-        fromDate = picked;
-      } else {
-        toDate = picked;
-      }
-    });
-
-    final adjustedToDate = toDate?.add(const Duration(hours: 23, minutes: 59, seconds: 59));
-
-    print("📅 Filtering from: $fromDate to: $adjustedToDate");
-
-    // 🔁 Re-fetch filtered data
-    context.read<UserCubit>().fetchComplaints(
-      fromDate: fromDate,
-      toDate: toDate,
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
     );
-  }
-}
 
+    if (picked != null) {
+      setState(() {
+        if (isFromDate) {
+          fromDate = picked;
+        } else {
+          toDate = picked;
+        }
+      });
+
+      final adjustedToDate = toDate?.add(
+        const Duration(hours: 23, minutes: 59, seconds: 59),
+      );
+
+      print("📅 Filtering from: $fromDate to: $adjustedToDate");
+
+      // 🔁 Re-fetch filtered data
+      context.read<UserCubit>().fetchComplaints(
+        fromDate: fromDate,
+        toDate: toDate,
+        typeComplaintId: selectedCategory,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +151,6 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
                 children: [
                   _buildDropdownPriority('Priority'),
                   _buildDropdownSatatus('Status'),
-                  
                 ],
               ),
               Row(
@@ -157,9 +163,7 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  _buildDropdownCategory('Category'),
-                ],
+                children: [_buildDropdownCategory('Category')],
               ),
             ],
           ),
@@ -171,6 +175,11 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
   Widget _buildSearchField() {
     return TextField(
       controller: searchController,
+      onChanged: (value) {
+        // Call the filter method in the cubit
+        // context.read<UserCubit>().filterComplaintsBySearch(value);
+        _filterComplaints(value);
+      },
       decoration: InputDecoration(
         hintText: 'Search...',
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -213,33 +222,54 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
   }
 
   Widget _buildDropdownSatatus(String label) {
-    return DropdownButton<String>(
-      value: selectedStatus,
-      hint: Text(label),
-      onChanged: (String? newValue) {
-        setState(() {
-          selectedStatus = newValue;
-        });
+    return BlocBuilder<UserCubit, UserState>(
+      builder: (context, state) {
+        final statuses = context.read<UserCubit>().complaintStatuses;
+
+        if (statuses.isEmpty) {
+          //   return const CircularProgressIndicator(); // or SizedBox.shrink()
+          return DropdownButton<String>(
+            value: null,
+            hint: Text("Status (N/A)"),
+            items: [],
+            onChanged: null, // disable interaction
+          );
+        }
+
+        return DropdownButton<String>(
+          value: selectedStatus,
+          hint: Text(label),
+          onChanged: (String? newValue) {
+            setState(() {
+              selectedStatus = newValue;
+            });
+          },
+          items:
+              statuses
+                  .map(
+                    (status) => DropdownMenuItem<String>(
+                      value: status["id"].toString(),
+                      child: Text(status["name"] ?? 'Unknown'),
+                    ),
+                  )
+                  .toList(),
+        );
       },
-      items:
-          ["Open", "In Progress", "Closed"]
-              .map(
-                (value) => DropdownMenuItem(value: value, child: Text(value)),
-              )
-              .toList(),
     );
   }
 
+  
   Widget _buildDropdownCategory(String label) {
     return BlocBuilder<UserCubit, UserState>(
       builder: (context, state) {
         final cubit = context.read<UserCubit>();
         final List<Map<String, dynamic>> categories = cubit.categories;
+        print("🔍 Selected Category: $selectedCategory");
 
         print("📦 Categories fetched: $categories");
         print("🧾 Categories loaded: ${categories.length}");
 
-        // 🔒 Safety: If selectedCategory is no longer in the list, clear it
+        // 🔒 Reset selection if ID not found
         if (selectedCategory != null &&
             !categories.any(
               (cat) => cat["id"].toString() == selectedCategory,
@@ -250,14 +280,11 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
         return DropdownButton<String>(
           value: selectedCategory,
           hint: Text(label),
-          //isExpanded: true, // ✅ Improves layout on small screens
           items:
               categories.map((category) {
                 return DropdownMenuItem<String>(
                   value: category["id"].toString(),
-                  child: Text(
-                    category["name"].toString().trim(),
-                  ), // clean newline
+                  child: Text(category["name"].toString().trim()),
                 );
               }).toList(),
           onChanged: (value) {
@@ -265,6 +292,13 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
               selectedCategory = value;
               print("✅ Selected category ID: $selectedCategory");
             });
+
+            // Now use the Cubit method that handles Dio headers
+            context.read<UserCubit>().fetchComplaints(
+              fromDate: fromDate,
+              toDate: toDate,
+              typeComplaintId: selectedCategory,
+            );
           },
         );
       },
@@ -313,17 +347,46 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
     );
   }
 
-//   void _applyFilters() {
-//   final cubit = context.read<UserCubit>();
-//   cubit.fetchComplaints(
-//     userId: "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
-//     search: searchController.text,
-//     priority: selectedPriority,
-//     status: selectedStatus,
-//     categoryId: selectedCategory,
-//     assignedTo: selectedAssignedTo,
-//     fromDate: fromDate,
-//     toDate: toDate,
-//   );
-// }
+  List<Map<String, dynamic>> allComplaints = []; // Full list from API
+  List<Map<String, dynamic>> filteredComplaints = []; // Filtered list to show
+
+  void _filterComplaints(String query) {
+    final input = query.trim().toLowerCase();
+    final results =
+        allComplaints.where((complaint) {
+          final content = complaint["content"]?.toLowerCase().trim() ?? '';
+          final description =
+              complaint["description"]?.toLowerCase().trim() ?? '';
+          final serial = complaint["serialNo"]?.toLowerCase().trim() ?? '';
+
+          // Debug: Print all complaint fields to check their content
+          print("Complaint content: $content");
+          print("Complaint description: $description");
+          print("Complaint serialNo: $serial");
+
+          return content.contains(input) ||
+              description.contains(input) ||
+              serial.contains(input);
+        }).toList();
+
+    print("🔍 Filtering complaints with query: $query");
+    print("✅ ${results.length} results found.");
+
+    setState(() {
+      filteredComplaints = results;
+    });
+  }
+
+  Widget _buildComplaintList() {
+    return ListView.builder(
+      itemCount: filteredComplaints.length,
+      itemBuilder: (context, index) {
+        final complaint = filteredComplaints[index];
+        return ListTile(
+          title: Text(complaint["content"] ?? "No content"),
+          subtitle: Text(complaint["serialNo"] ?? ""),
+        );
+      },
+    );
+  }
 }

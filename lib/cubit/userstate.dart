@@ -45,3 +45,6 @@ final class SendFailure extends UserState {
 
   SendFailure({required this.errMessage});
 }
+
+// complaints status
+final class StatusLoaded extends UserState {}

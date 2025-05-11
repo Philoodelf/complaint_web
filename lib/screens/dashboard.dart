@@ -4,6 +4,7 @@ import 'package:complaint_web/shared_preferences/storage_token.dart';
 import 'package:complaint_web/widgets/complaintListView.dart';
 import 'package:complaint_web/widgets/filterrow.dart';
 import 'package:flutter/material.dart';
+import 'dart:html' as html;
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -24,7 +25,15 @@ class _DashboardState extends State<Dashboard> {
               "Pharmaplast Complaint System",
               style: TextStyle(color: Colors.white),
             ),
-            const Spacer(), // Pushes the title to the right
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.refresh,color: Colors.blue,),
+              tooltip: 'Reset Filters',
+              onPressed: () {
+                html.window.location.reload(); // 🔁 Refresh the page
+              },
+            ),
+            const SizedBox(width:12 ),
             ElevatedButton(
               onPressed: () async {
                 await TokenStorage.clearToken();

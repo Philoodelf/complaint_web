@@ -170,7 +170,7 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               Text("Complaint ${complaint.serialNo ?? 'N/A'}"),
-                              Text("${complaint.description ?? ''}"),
+                              Text("${complaint.description ?? 'N/A'}"),
                               Text("${complaint.statusName ?? 'N/A'}"),
                               Text("${complaint.typecomplaintName ?? ''}"),
                               Text("${complaint.priority ?? 'N/A'}"),

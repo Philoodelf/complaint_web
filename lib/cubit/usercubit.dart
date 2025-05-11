@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class UserCubit extends Cubit<UserState> {
   final ApiConsumer api;
   List<Map<String, dynamic>> categories = [];
+  List<Map<String, dynamic>> complaintStatuses = [];
   UserCubit(this.api) : super(UserInitial());
   GlobalKey<FormState> sendItFormKey = GlobalKey();
 
@@ -81,8 +82,29 @@ class UserCubit extends Cubit<UserState> {
       emit(SendFailure(errMessage: "Error fetching complaints."));
     }
   }
+  //   Future<void> fetchAllComplaintStatuses() async {
+  //   try {
+  //     emit(PostLoading());
 
-  Future<void> fetchCategories() async {
+  //     final response = await api.get(Endpoints.statusComplaint);
+
+  //     print("📦 Complaint Status Response: ${response?.data}");
+
+  //     if (response != null &&
+  //         response.statusCode == 200 &&
+  //         response.data['data'] is List) {
+  //       complaintStatuses = List<Map<String, dynamic>>.from(response.data['data']);
+  //       emit(StatusLoaded(complaintStatuses)); // create this state
+  //     } else {
+  //       emit(SendFailure(errMessage: "Failed to load complaints."));
+  //     }
+  //   } catch (e) {
+  //     print("❌ Error fetching complaints: $e");
+  //     emit(SendFailure(errMessage: "Error fetching complaints."));
+  //   }
+  // }
+
+  Future<void> fetchCategories({String? typeComplaintId}) async {
     try {
       emit(PostLoading());
 
@@ -90,7 +112,7 @@ class UserCubit extends Cubit<UserState> {
         Endpoints.categoryComplaint,
       ); // replace with actual endpoint
 
-     // print("📦 Categories Response: ${response?.data}");
+      // print("📦 Categories Response: ${response?.data}");
 
       if (response != null &&
           response.statusCode == 200 &&
@@ -107,82 +129,109 @@ class UserCubit extends Cubit<UserState> {
     }
   }
 
-  // get all complains
-  Future<void> fetchComplaints(
-    {DateTime? fromDate, DateTime? toDate}
-  
-  ) async {
+  // // get all complains
+  Future<void> fetchComplaints({
+    DateTime? fromDate,
+    DateTime? toDate,
+    String? typeComplaintId,
+  }) async {
     emit(PostLoading());
 
     try {
-      print("📅 Filtering from: $fromDate to: $toDate");
+      print(
+        "📅 Filtering from: $fromDate to: $toDate 🏷️ Category: $typeComplaintId",
+      );
+
+      final queryParams = <String, dynamic>{
+        
+      };
+     
+
+      if (fromDate != null) {
+        queryParams['fromDate'] =
+            fromDate.toIso8601String().split('T')[0]; // YYYY-MM-DD
+      }
+
+      if (toDate != null) {
+        queryParams['toDate'] = toDate.toIso8601String().split('T')[0];
+      }
+
       
+      final headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      'userId': "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
+      'PageNo': '1',
+      'NoOfItems': '20',
+      if (typeComplaintId != null && typeComplaintId.isNotEmpty)
+        'TypecomplaintId': typeComplaintId,
+    };
 
-      final queryParams = <String, dynamic>{};
+    print("📡 Sending headers: $headers");
+    print("📡 Sending query params: $queryParams");
 
-    if (fromDate != null) {
-      queryParams['fromDate'] = fromDate.toIso8601String().split('T')[0]; // YYYY-MM-DD
-    }
-
-    if (toDate != null) {
-      queryParams['toDate'] = toDate.toIso8601String().split('T')[0];
-    }
-
-  
-
-      final response = await api.get(Endpoints.allComplaints,  queryParameters: queryParams,);
+      final response = await api.get(
+        Endpoints.allComplaints,
+        queryParameters: queryParams,
+       headers: headers,
+      );
       print("📡 Response status code: ${response.statusCode}");
-    //  print("📡 Response body: ${response.data}");
+
+      //  print("📡 Response body: ${response.data}");
 
       if (response.statusCode == 200 && response.data['result'] == true) {
         final List<dynamic> jsonList = response.data['data'] ?? [];
 
         if (jsonList == null) {
-        print("❗ API returned null for 'data'");
-        emit(UserError("API returned null for complaints list."));
-        return;
-      }
+          print("❗ API returned null for 'data'");
+          emit(UserError("API returned null for complaints list."));
+          return;
+        }
 
-      print("📦 Total complaints received: ${jsonList.length}");
+        print("📦 Total complaints received: ${jsonList.length}");
+
+       
+       
 
         final complaints =
             jsonList
                 .map((item) {
-                  // date filter remove nullsafety 
-           try {
-          final complaintDateStr = item["date"];
-          if (complaintDateStr == null) {
-            print("⚠️ Skipping item with no date: $item");
-            return null;
-          }
+                  try {
+                    final complaintDateStr = item["date"];
+                    if (complaintDateStr == null) {
+                      print("⚠️ Skipping item with no date: $item");
+                      return null;
+                    }
 
-          final complaintDate = DateTime.parse(complaintDateStr);
-          print("🗓️ Complaint Date: $complaintDate");
+                    final complaintDate = DateTime.parse(complaintDateStr);
+                    print("🗓️ Complaint Date: $complaintDate");
 
-          bool isWithinRange = true;
+                    bool isWithinRange = true;
 
-          if (fromDate != null && complaintDate.isBefore(fromDate)) {
-            isWithinRange = false;
-          }
+                    if (fromDate != null && complaintDate.isBefore(fromDate)) {
+                      isWithinRange = false;
+                    }
 
-          if (toDate != null && complaintDate.isAfter(toDate)) {
-            isWithinRange = false;
-          }
+                    if (toDate != null && complaintDate.isAfter(toDate)) {
+                      isWithinRange = false;
+                    }
 
-          if (isWithinRange) {
-            return Complaint.fromJson(item as Map<String, dynamic>);
-          } else {
-            print("⛔ Outside date range: $complaintDate");
-            return null;
-          }
-        } catch (e) {
-          print("❌ Error parsing item: $item");
-          print("   ↪️ Reason: $e");
-          return null;
-        }
-      }).whereType<Complaint>().toList(); // Removes nulls safely
+                    if (isWithinRange) {
+                      return Complaint.fromJson(item as Map<String, dynamic>);
+                    } else {
+                      print("⛔ Outside date range: $complaintDate");
+                      return null;
+                    }
+                  } catch (e) {
+                    print("❌ Error parsing item: $item");
+                    print("   ↪️ Reason: $e");
+                    return null;
+                  }
+                })
+                .whereType<Complaint>()
+                .toList(); // Removes nulls safely
 
-      print("✅ Complaints after filtering: ${complaints.length}");
+        print("✅ Complaints after filtering: ${complaints.length}");
         emit(UserLoaded(complaints));
         print("✅ Loaded complaints count: ${complaints.length}");
       } else {
@@ -201,69 +250,25 @@ class UserCubit extends Cubit<UserState> {
       print("unexpected ");
     }
   }
+  
 
-  // text
-  // Future<void> fetchComplaints({required int userId}) async {
-  //   emit(PostLoading());
+  List<Complaint> filteredComplaints = [];
+  List<Complaint> allComplaints = [];
+  //  void filterComplaintsBySearch(String query) {
+  //   print("🔍 Filtering complaints with query: $query");
+  //   final input = query.toLowerCase();
+  //   filteredComplaints = allComplaints.where((complaint) {
+  //     final content = complaint.content?.toLowerCase() ?? '';
+  //     final description = complaint.description?.toLowerCase() ?? '';
+  //     final serial = complaint.serialNo?.toLowerCase() ?? '';
+  //     final matches = content.contains(input) ||
+  //         description.contains(input) ||
+  //         serial.contains(input);
+  //     print("   Matches: $matches - Content: $content, Description: $description, Serial: $serial");
+  //     return matches;
+  //   }).toList();
 
-  //   try {
-  //     print("📡 Initiating API call...");
-
-  //     // final Response response =
-  //     //     await api.get(
-  //     //           Endpoints.allComplaints,
-  //     //           headers: {
-  //     //             "userId": userId.toString(),
-  //     //             "PageNo": "1",
-  //     //             "NoOfItems": "100",
-  //     //           },
-  //     //         )
-  //          //   as Response;
-  //     final response =
-  //         await api.get(
-  //               Endpoints.allComplaints,
-  //               headers: {
-  //                 "userId": userId.toString(),
-  //                 "PageNo": "1",
-  //                 "NoOfItems": "100",
-  //               },
-  //             )
-  //             as Response?;
-
-  //     print("📡 Response status code: ${response?.statusCode}");
-  //     print("📡 Response body: ${response?.data}");
-
-  //     try {
-  //       if (response?.statusCode == 200 && response?.data['result'] == true) {
-  //         final List<dynamic> jsonList = response?.data['data'] ?? [];
-
-  //         final complaints =
-  //             jsonList
-  //                 .map(
-  //                   (item) => Complaint.fromJson(item as Map<String, dynamic>),
-  //                 )
-  //                 .toList();
-
-  //         emit(UserLoaded(complaints));
-  //         print("✅ Loaded complaints count: ${complaints.length}");
-  //       } else {
-  //         emit(UserError("Failed to load complaints: Invalid response"));
-  //       }
-  //     } catch (innerError) {
-  //       print("❌ Error parsing or processing response: $innerError");
-  //       emit(UserError("Processing error: $innerError"));
-  //     }
-  //   } on DioError catch (e) {
-  //     if (e.response != null) {
-  //       print("🔴 Dio error response data: ${e.response?.data}");
-  //       print("🔴 Dio error status code: ${e.response?.statusCode}");
-  //     } else {
-  //       print("🔴 Dio error without response: ${e.message}");
-  //     }
-  //     emit(UserError("Dio error: ${e.message}"));
-  //   } catch (e) {
-  //     print("❌ Unexpected error: $e");
-  //     emit(UserError("Unexpected error: ${e.toString()}"));
-  //   }
+  //   emit(UserLoaded(filteredComplaints));
+  //   print("✅ Complaints after filtering: ${filteredComplaints.length}");
   // }
 }
