@@ -582,8 +582,8 @@ class _ComplaintListViewState extends State<ComplaintListView> {
 
                                           const SizedBox(height: 36), // Spacer
                                           // A single Text widget
-                                          const Text(
-                                            "No Audio",
+                                           Text(
+                                           complaint.voice?? "N/A",
                                             style: TextStyle(
                                               color: Color.fromARGB(
                                                 209,
@@ -597,11 +597,11 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                           const SizedBox(height: 12), // Spacer
                                           // Text with X Icon
                                           Row(
-                                            children: const [
+                                            children:  [
                                               Icon(Icons.close),
                                               SizedBox(width: 8),
                                               Text(
-                                                "No Attachment",
+                                                complaint.attachComplaint?? "N/A",
                                                 style: TextStyle(
                                                   color: Color.fromARGB(
                                                     209,
@@ -619,13 +619,13 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                           Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
-                                            children: const [
+                                            children:  [
                                               Row(
                                                 children: [
                                                   Icon(Icons.close, size: 16),
                                                   SizedBox(width: 4),
                                                   Text(
-                                                    "No Name",
+                                                    complaint.name?? "N/A",
                                                     style: TextStyle(
                                                       color: Color.fromARGB(
                                                         209,
@@ -642,7 +642,7 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                                   Icon(Icons.close, size: 16),
                                                   SizedBox(width: 4),
                                                   Text(
-                                                    "No Email",
+                                                    complaint.email?? "N/A",
                                                     style: TextStyle(
                                                       color: Color.fromARGB(
                                                         209,
@@ -659,7 +659,7 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                                   Icon(Icons.close, size: 16),
                                                   SizedBox(width: 4),
                                                   Text(
-                                                    "No Phone Number",
+                                                    complaint.phoneNumber?? "N/A",
                                                     style: TextStyle(
                                                       color: Color.fromARGB(
                                                         209,
@@ -802,14 +802,14 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                       style: TextStyle(color: Colors.grey),
                                     ),
                                     _buildRoundedLabel(
-                                      " ${complaint.priority ?? "N/A"}",
+                                      " ${complaint.content ?? "N/A"}",
                                     ),
                                     Text(
                                       'Corrective Action',
                                       style: TextStyle(color: Colors.grey),
                                     ),
                                     _buildRoundedLabel(
-                                      " ${complaint.typeComplaintName ?? "N/A"}",
+                                      " ${complaint.correctiveAction ?? "N/A"}",
                                     ),
                                   ],
                                 ),
