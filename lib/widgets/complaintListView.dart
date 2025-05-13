@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ComplaintListView extends StatefulWidget {
   // final int userId;
-  const ComplaintListView({super.key});
+  const ComplaintListView({super.key, });
 
   @override
   State<ComplaintListView> createState() => _ComplaintListViewState();
@@ -18,7 +18,7 @@ class _ComplaintListViewState extends State<ComplaintListView> {
   void initState() {
     super.initState();
     context.read<UserCubit>().fetchComplaints(
-    //  userId: "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26"
+      //  userId: "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26"
       // userId:391
     ); // No userId = get all complaints
   }
@@ -147,16 +147,7 @@ class _ComplaintListViewState extends State<ComplaintListView> {
 
                     return GestureDetector(
                       onTap: () {
-                        _showComplaintDetails(context, {
-                          "serial": complaint.serialNo ?? "N/A",
-                          "details": complaint.description ?? "N/A",
-                          "status": complaint.statusName ?? "N/A",
-                          "type": complaint.typecomplaintName ?? "N/A",
-                          "priority": complaint.priority?.toString() ?? "N/A",
-                          "submissionDate": complaint.date ?? "N/A",
-                          "file": complaint.attachComplaint ?? "N/A",
-                          "assignedTo": complaint.assignTo ?? "N/A",
-                        });
+                        _showComplaintDetails(context, complaint);
                       },
                       child: Card(
                         margin: const EdgeInsets.symmetric(
@@ -278,16 +269,18 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                     final complaint = complaints[index];
                     return GestureDetector(
                       onTap: () {
-                        _showComplaintDetails(context, {
-                          "serial": complaint.serialNo ?? "N/A",
-                          "details": complaint.description ?? "N/A",
-                          "status": complaint.statusName ?? "N/A",
-                          "type": complaint.typecomplaintName ?? "N/A",
-                          "priority": complaint.priority?.toString() ?? "N/A",
-                          "submissionDate": complaint.date ?? "N/A",
-                          "file": complaint.attachComplaint ?? "N/A",
-                          "assignedTo": complaint.assignTo ?? "N/A",
-                        });
+                        _showComplaintDetails(context, complaint
+                        // {
+                        //   "serial": complaint.serialNo ?? "N/A",
+                        //   "details": complaint.description ?? "N/A",
+                        //   "status": complaint.statusName ?? "N/A",
+                        //   "type": complaint.typecomplaintName ?? "N/A",
+                        //   "priority": complaint.priority?.toString() ?? "N/A",
+                        //   "submissionDate": complaint.date ?? "N/A",
+                        //   "file": complaint.attachComplaint ?? "N/A",
+                        //   "assignedTo": complaint.assignTo ?? "N/A",
+                        // }
+                        );
                       },
                       child: Card(
                         margin: const EdgeInsets.symmetric(
@@ -412,16 +405,7 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                     final complaint = complaints[index];
                     return GestureDetector(
                       onTap: () {
-                        _showComplaintDetails(context, {
-                          "serial": complaint.serialNo ?? "N/A",
-                          "details": complaint.description ?? "N/A",
-                          "status": complaint.statusName ?? "N/A",
-                          "type": complaint.typecomplaintName ?? "N/A",
-                          "priority": complaint.priority?.toString() ?? "N/A",
-                          "submissionDate": complaint.date ?? "N/A",
-                          "file": complaint.attachComplaint ?? "N/A",
-                          "assignedTo": complaint.assignTo ?? "N/A",
-                        });
+                        _showComplaintDetails(context, complaint);
                       },
                       child: Card(
                         margin: const EdgeInsets.symmetric(
@@ -497,7 +481,8 @@ class _ComplaintListViewState extends State<ComplaintListView> {
 
   void _showComplaintDetails(
     BuildContext context,
-    Map<String, String> complaint,
+    // Map<String, String> complaint,
+    Complaint complaint,
   ) {
     String? _selectedStatus;
     String? _selectedPriority;
@@ -509,6 +494,7 @@ class _ComplaintListViewState extends State<ComplaintListView> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            //  final complaint = complaints[index];
             double screenWidth = MediaQuery.of(context).size.width;
             return Dialog(
               insetPadding: const EdgeInsets.all(20),
@@ -550,7 +536,7 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                             child: Column(
                               children: [
                                 SizedBox(
-                                  height: 200,
+                                  height: 250,
                                   width: 700,
                                   child: Container(
                                     decoration: BoxDecoration(
@@ -567,13 +553,13 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                         children: [
                                           // Row with three Text widgets
                                           Row(
-                                            children: const [
-                                              Text("15,2025"),
+                                            children: [
+                                              Text(complaint.date ?? "N/A"),
                                               Padding(
                                                 padding: EdgeInsets.all(12),
                                               ),
                                               Text(
-                                                "N/A",
+                                                complaint.priority ?? "N/A",
                                                 style: TextStyle(
                                                   color: Colors.orange,
                                                 ),
@@ -582,7 +568,7 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                                 padding: EdgeInsets.all(12),
                                               ),
                                               Text(
-                                                "N/A",
+                                               complaint.statusName ?? "N/A",
                                                 style: TextStyle(
                                                   color: Colors.green,
                                                 ),
@@ -590,7 +576,7 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                               Padding(
                                                 padding: EdgeInsets.all(12),
                                               ),
-                                              Text("شكوى"),
+                                              Text(complaint.typecomplaintName ?? "N/A"),
                                             ],
                                           ),
 
@@ -809,21 +795,21 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                       style: TextStyle(color: Colors.grey),
                                     ),
                                     _buildRoundedLabel(
-                                      " ${complaint['status'] ?? "N/A"}",
+                                     " ${complaint.statusName ?? "N/A"}"
                                     ),
                                     Text(
                                       'Content',
                                       style: TextStyle(color: Colors.grey),
                                     ),
                                     _buildRoundedLabel(
-                                      " ${complaint['priority'] ?? "N/A"}",
+                                      " ${complaint.priority ?? "N/A"}",
                                     ),
                                     Text(
                                       'Corrective Action',
                                       style: TextStyle(color: Colors.grey),
                                     ),
                                     _buildRoundedLabel(
-                                      " ${complaint['type'] ?? "N/A"}",
+                                      " ${complaint.typeComplaintName ?? "N/A"}",
                                     ),
                                   ],
                                 ),

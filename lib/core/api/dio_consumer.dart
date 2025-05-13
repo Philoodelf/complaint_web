@@ -10,7 +10,6 @@ class DioConsumer extends ApiConsumer {
     dio.options.headers = {
       "Content-Type": "application/json",
       "Accept": "application/json",
-    // "TypecomplaintId": " ",
       'PageNo': '1',
       'NoOfItems': '20',
       'userId': "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",

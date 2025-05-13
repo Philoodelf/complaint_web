@@ -2,6 +2,7 @@ import 'package:complaint_web/core/api/api_consumer.dart';
 import 'package:complaint_web/core/api/endpoints.dart';
 import 'package:complaint_web/cubit/userstate.dart';
 import 'package:complaint_web/model/complaints_model.dart';
+import 'package:complaint_web/model/pagination_model.dart';
 import 'package:complaint_web/shared_preferences/storage_token.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -129,11 +130,15 @@ class UserCubit extends Cubit<UserState> {
     }
   }
 
+  //
+
   // // get all complains
   Future<void> fetchComplaints({
     DateTime? fromDate,
     DateTime? toDate,
     String? typeComplaintId,
+    int pageNo=1 , 
+    int noOfItems=20, // Number of items per page ????
   }) async {
     emit(PostLoading());
 
@@ -142,10 +147,7 @@ class UserCubit extends Cubit<UserState> {
         "📅 Filtering from: $fromDate to: $toDate 🏷️ Category: $typeComplaintId",
       );
 
-      final queryParams = <String, dynamic>{
-        
-      };
-     
+      final queryParams = <String, dynamic>{};
 
       if (fromDate != null) {
         queryParams['fromDate'] =
@@ -156,24 +158,23 @@ class UserCubit extends Cubit<UserState> {
         queryParams['toDate'] = toDate.toIso8601String().split('T')[0];
       }
 
-      
       final headers = {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      'userId': "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
-      'PageNo': '1',
-      'NoOfItems': '20',
-      if (typeComplaintId != null && typeComplaintId.isNotEmpty)
-        'TypecomplaintId': typeComplaintId,
-    };
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        'userId': "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
+        'PageNo': pageNo.toString(), // Pagination page number
+        'NoOfItems': noOfItems.toString(), // Number of items per page
+        if (typeComplaintId != null && typeComplaintId.isNotEmpty)
+          'TypecomplaintId': typeComplaintId,
+      };
 
-    print("📡 Sending headers: $headers");
-    print("📡 Sending query params: $queryParams");
+      print("📡 Sending headers: $headers");
+      print("📡 Sending query params: $queryParams");
 
       final response = await api.get(
         Endpoints.allComplaints,
         queryParameters: queryParams,
-       headers: headers,
+        headers: headers,
       );
       print("📡 Response status code: ${response.statusCode}");
 
@@ -190,8 +191,7 @@ class UserCubit extends Cubit<UserState> {
 
         print("📦 Total complaints received: ${jsonList.length}");
 
-       
-       
+        
 
         final complaints =
             jsonList
@@ -232,7 +232,19 @@ class UserCubit extends Cubit<UserState> {
                 .toList(); // Removes nulls safely
 
         print("✅ Complaints after filtering: ${complaints.length}");
-        emit(UserLoaded(complaints));
+        final int totalItems =
+            response.data['totalItems'] ??
+            0; // Extract totalItems from the response
+        final int noOfItems =
+            response.data['noOfItems'] ?? 0; // Extract noOfItems per page
+        final int totalPages =
+            (totalItems / noOfItems).ceil(); // Calculate totalPages
+        final int pageNo= response.data['pageNo'] ?? 1;
+
+        print('Total Items: $totalItems');
+        print('Total Pages: $totalPages');
+
+        emit(UserLoaded(complaints, totalPages, pageNo, noOfItems, totalItems));
         print("✅ Loaded complaints count: ${complaints.length}");
       } else {
         emit(UserError("Failed to load complaints: Invalid response"));
@@ -250,7 +262,6 @@ class UserCubit extends Cubit<UserState> {
       print("unexpected ");
     }
   }
-  
 
   List<Complaint> filteredComplaints = [];
   List<Complaint> allComplaints = [];

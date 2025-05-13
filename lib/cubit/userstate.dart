@@ -12,8 +12,17 @@ final class UserInitial extends UserState {}
 // user loaded complains
 class UserLoaded extends UserState {
   final List<Complaint> complaints;
+  final int totalPages;
+  final int pageNo;
+  final int noOfItems;
+  final int totalItems;
 
-  const UserLoaded(this.complaints);
+  const UserLoaded(
+    this.complaints,
+    this.totalPages,
+    this.pageNo,
+    this.noOfItems, this.totalItems,
+  );
 
   @override
   List<Object?> get props => [complaints];
@@ -48,3 +57,11 @@ final class SendFailure extends UserState {
 
 // complaints status
 final class StatusLoaded extends UserState {}
+
+// pagination
+final class UserLoadedPage extends UserState {
+  final List<Complaint> complaints;
+  final int totalPages;
+
+  const UserLoadedPage({required this.complaints, required this.totalPages});
+}
