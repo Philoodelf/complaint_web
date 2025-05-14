@@ -4,10 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:number_paginator/number_paginator.dart';
 
-
-
-
-
 // class Pagination extends StatefulWidget {
 //   const Pagination({super.key});
 
@@ -16,19 +12,17 @@ import 'package:number_paginator/number_paginator.dart';
 // }
 
 // class _PaginationState extends State<Pagination> {
-//   int currentPage = 1;  
-//   int totalPages = 7;   
-//   int noOfItems = 20; 
-//   int totalItems=125;  
-  
-  
+//   int currentPage = 1;
+//   int totalPages = 7;
+//   int noOfItems = 20;
+//   int totalItems=125;
 
 //    @override
 //   void initState() {
 //     super.initState();
 //     fetchDataForPage(currentPage); // Initial load
 //   }
-  
+
 //   void fetchDataForPage(int page) {
 //      context.read<UserCubit>().fetchComplaints(
 //           pageNo: page,
@@ -90,7 +84,18 @@ import 'package:number_paginator/number_paginator.dart';
 // }
 
 class Pagination extends StatefulWidget {
-  const Pagination({super.key});
+  final DateTime? fromDate;
+  final DateTime? toDate;
+  final String? selectedCategoryId;
+  final String? searchQuery;
+
+  const Pagination({
+    super.key,
+    this.fromDate,
+    this.toDate,
+    this.selectedCategoryId,
+    this.searchQuery,
+  });
 
   @override
   State<Pagination> createState() => _PaginationState();
@@ -101,11 +106,22 @@ class _PaginationState extends State<Pagination> {
   void initState() {
     super.initState();
     // Initial load
-    context.read<UserCubit>().fetchComplaints();
+    context.read<UserCubit>().fetchComplaints(
+      fromDate: widget.fromDate,
+      toDate: widget.toDate,
+      typeComplaintId: widget.selectedCategoryId,
+      search: widget.searchQuery,
+    );
   }
 
   void fetchDataForPage(int page) {
-    context.read<UserCubit>().fetchComplaints(pageNo: page);
+    context.read<UserCubit>().fetchComplaints(
+      pageNo: page,
+      fromDate: widget.fromDate,
+      toDate: widget.toDate,
+      typeComplaintId: widget.selectedCategoryId,
+      search: widget.searchQuery,
+    );
     print("🔄 Fetching data for page $page from API");
   }
 
@@ -113,9 +129,13 @@ class _PaginationState extends State<Pagination> {
   Widget build(BuildContext context) {
     return BlocBuilder<UserCubit, UserState>(
       builder: (context, state) {
-         if (state is PostLoading) {
-      return  Center(child: CircularProgressIndicator(color: Color.fromARGB(145, 31, 63, 220),));
-    }
+        if (state is PostLoading) {
+          return Center(
+            child: CircularProgressIndicator(
+              color: Color.fromARGB(145, 31, 63, 220),
+            ),
+          );
+        }
         // Default values
         int totalPages = 1;
         int currentPage = 1;
@@ -147,4 +167,3 @@ class _PaginationState extends State<Pagination> {
     );
   }
 }
-

@@ -163,7 +163,12 @@ Widget _buildDesktopDashboard() {
     children: [
       ResponsiveFilterRow(),
       Expanded(child: ComplaintListView()),
-      Pagination()
+      Pagination(
+  //       fromDate: fromDate,
+  // toDate: toDate,
+  // selectedCategoryId: selectedCategory,
+  // searchQuery: searchController.text,
+  )
     ],
   );
 }

@@ -133,18 +133,27 @@ class UserCubit extends Cubit<UserState> {
   //
 
   // // get all complains
+  DateTime? currentFromDate;
+  DateTime? currentToDate;
+  String? currentTypeComplaintId;
+  String? currentSearch;
+  
   Future<void> fetchComplaints({
     DateTime? fromDate,
     DateTime? toDate,
     String? typeComplaintId,
-    int pageNo=1 , 
-    int noOfItems=20, // Number of items per page ????
+    String? search,
+    int pageNo = 1,
+    int noOfItems = 20, // Number of items per page ????
   }) async {
     emit(PostLoading());
-
+    currentFromDate = fromDate ?? currentFromDate;
+    currentToDate = toDate ?? currentToDate;
+    currentTypeComplaintId = typeComplaintId ?? currentTypeComplaintId;
+    currentSearch = search ?? currentSearch;
     try {
       print(
-        "📅 Filtering from: $fromDate to: $toDate 🏷️ Category: $typeComplaintId",
+        "📅 Filtering from: $fromDate to: $toDate 🏷️ Category: $typeComplaintId search: $search",
       );
 
       final queryParams = <String, dynamic>{};
@@ -158,6 +167,13 @@ class UserCubit extends Cubit<UserState> {
         queryParams['toDate'] = toDate.toIso8601String().split('T')[0];
       }
 
+      // if (search != null && search.isNotEmpty) {
+      //   queryParams['KeyWord'] = search.trim();
+      // }
+
+      // print("📡 Final search param: $search");
+      // print("📡 Sending search in queryParams: $queryParams");
+
       final headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -166,10 +182,12 @@ class UserCubit extends Cubit<UserState> {
         'NoOfItems': noOfItems.toString(), // Number of items per page
         if (typeComplaintId != null && typeComplaintId.isNotEmpty)
           'TypecomplaintId': typeComplaintId,
+        if (search != null && search.trim().isNotEmpty)
+          'KeyWord': search.trim(),
       };
-
+      print("🔍 Search query: $search");
       print("📡 Sending headers: $headers");
-      print("📡 Sending query params: $queryParams");
+      // print("📡 Sending query params: $queryParams");
 
       final response = await api.get(
         Endpoints.allComplaints,
@@ -190,8 +208,6 @@ class UserCubit extends Cubit<UserState> {
         }
 
         print("📦 Total complaints received: ${jsonList.length}");
-
-        
 
         final complaints =
             jsonList
@@ -239,7 +255,7 @@ class UserCubit extends Cubit<UserState> {
             response.data['noOfItems'] ?? 0; // Extract noOfItems per page
         final int totalPages =
             (totalItems / noOfItems).ceil(); // Calculate totalPages
-        final int pageNo= response.data['pageNo'] ?? 1;
+        final int pageNo = response.data['pageNo'] ?? 1;
 
         print('Total Items: $totalItems');
         print('Total Pages: $totalPages');
@@ -265,21 +281,113 @@ class UserCubit extends Cubit<UserState> {
 
   List<Complaint> filteredComplaints = [];
   List<Complaint> allComplaints = [];
-  //  void filterComplaintsBySearch(String query) {
-  //   print("🔍 Filtering complaints with query: $query");
-  //   final input = query.toLowerCase();
-  //   filteredComplaints = allComplaints.where((complaint) {
-  //     final content = complaint.content?.toLowerCase() ?? '';
-  //     final description = complaint.description?.toLowerCase() ?? '';
-  //     final serial = complaint.serialNo?.toLowerCase() ?? '';
-  //     final matches = content.contains(input) ||
-  //         description.contains(input) ||
-  //         serial.contains(input);
-  //     print("   Matches: $matches - Content: $content, Description: $description, Serial: $serial");
-  //     return matches;
-  //   }).toList();
 
-  //   emit(UserLoaded(filteredComplaints));
+  // Future<void> filterComplaintsBySearch(String query) async {
+  //   final trimmedQuery = query.trim();
+  //   print("🔍 Filtering complaints with query: '$trimmedQuery'");
+
+  //   final queryParams = <String, dynamic>{
+  //     if (trimmedQuery.isNotEmpty) 'KeyWord': trimmedQuery,
+  //   };
+
+  //   final headers = {
+  //     "Content-Type": "application/json",
+  //     "Accept": "application/json",
+  //     'userId': "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
+  //     'PageNo': '1',
+  //     'NoOfItems': '20',
+  //   };
+
+  //   print("📡 Sending headers: $headers");
+  //   print("📡 Sending query params: $queryParams");
+
+  //   try {
+  //     final response = await api.get(
+  //       Endpoints.allComplaints,
+  //       queryParameters: queryParams,
+  //       headers: headers,
+  //     );
+
+  //     print("📡 Response status code: ${response.statusCode}");
+
+  //     if (response.statusCode == 200 && response.data['result'] == true) {
+  //       final List<dynamic> jsonList = response.data['data'] ?? [];
+
+  //       final complaints =
+  //           jsonList
+  //               .map((item) => Complaint.fromJson(item as Map<String, dynamic>))
+  //               .toList();
+
+  //       final int totalItems = response.data['totalItems'] ?? 0;
+  //       final int noOfItems = response.data['noOfItems'] ?? 0;
+  //       final int totalPages = (totalItems / noOfItems).ceil();
+  //       final int pageNo = response.data['pageNo'] ?? 1;
+
+  //       emit(UserLoaded(complaints, totalPages, pageNo, noOfItems, totalItems));
+  //       print("✅ Loaded complaints count: ${complaints.length}");
+  //     } else {
+  //       emit(UserError("Failed to load complaints: Invalid response"));
+  //     }
+  //   } catch (e) {
+  //     emit(UserError("Unexpected error: ${e.toString()}"));
+  //     print("❌ Unexpected error: ${e.toString()}");
+  //   }
+  // }
+
+  // Future<void> filterComplaintsBySearch(String query) async {
+  //   final trimmedQuery = query.trim().toLowerCase();
+  //   print("🔍 Filtering complaints with query: '$trimmedQuery'");
+
+  //   // Return all complaints if query is empty
+  //   // if (trimmedQuery.isEmpty) {
+  //   //   print("🔁 Empty query, restoring all complaints.");
+  //   //   filteredComplaints = List.from(allComplaints);
+  //   // } else {
+  //   //   filteredComplaints =
+  //   //       allComplaints.where((complaint) {
+  //   //         final content = complaint.content?.toLowerCase() ?? '';
+  //   //         final description = complaint.description?.toLowerCase() ?? '';
+  //   //         final serial = complaint.serialNo?.toLowerCase() ?? '';
+
+  //   //         final matches =
+  //   //             content.contains(trimmedQuery) ||
+  //   //             description.contains(trimmedQuery) ||
+  //   //             serial.contains(trimmedQuery);
+
+  //   //         print(
+  //   //           "   ▶ Matches: $matches | Content: $content | Description: $description | Serial: $serial",
+  //   //         );
+  //   //         return matches;
+  //   //       }).toList();
+  //   // }
+  //   final queryParams = <String, dynamic>{};
+  //   final headers = {
+  //     "Content-Type": "application/json",
+  //     "Accept": "application/json",
+  //     'userId': "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
+  //     'PageNo': '1', // Pagination page number
+  //     'NoOfItems': '20', // Number of items per page
+  //     // if (typeComplaintId != null && typeComplaintId.isNotEmpty)
+  //     //   'TypecomplaintId': typeComplaintId,
+  //   };
   //   print("✅ Complaints after filtering: ${filteredComplaints.length}");
+  //   final response = await api.get(
+  //     Endpoints.allComplaints,
+  //     queryParameters: queryParams,
+  //     headers: headers,
+  //   );
+
+  //   final int totalItems =
+  //       response.data['totalItems'] ??
+  //       0; // Extract totalItems from the response
+  //   final int noOfItems =
+  //       response.data['noOfItems'] ?? 0; // Extract noOfItems per page
+  //   final int totalPages =
+  //       (totalItems / noOfItems).ceil(); // Calculate totalPages
+  //   final int pageNo = response.data['pageNo'] ?? 1;
+  //   // Emit updated state with filtered list
+  //   emit(
+  //     UserLoaded(filteredComplaints, totalPages, pageNo, noOfItems, totalItems),
+  //   );
   // }
 }

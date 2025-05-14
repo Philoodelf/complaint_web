@@ -65,3 +65,29 @@ final class UserLoadedPage extends UserState {
 
   const UserLoadedPage({required this.complaints, required this.totalPages});
 }
+
+// search
+// final class UserSearch extends UserState{
+//   final List<Map<String, dynamic>> complaints;
+
+//   UserSearch( this.complaints);
+// }
+// final class UserSearch extends UserState {
+//   final List<Complaint> complaints;
+//   final int totalPages;
+//   final int pageNo;
+//   final int noOfItems;
+//   final int totalItems;
+
+//   const UserSearch(
+//     this.complaints,
+//     this.totalPages,
+//     this.pageNo,
+//     this.noOfItems,
+//     this.totalItems,
+//   );
+
+//   @override
+//   List<Object?> get props => [complaints, totalPages, pageNo, noOfItems, totalItems];
+// }
+

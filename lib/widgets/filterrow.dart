@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:complaint_web/cubit/usercubit.dart';
 import 'package:complaint_web/cubit/userstate.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +20,9 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
 
   DateTime? fromDate;
   DateTime? toDate;
+
+  String searchText = '';
+  Timer? _debounce;
 
   List<Map<String, dynamic>> complaintStatuses = [];
 
@@ -172,20 +177,56 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
     );
   }
 
+  // Widget _buildSearchField() {
+  //   return TextField(
+  //     controller: searchController,
+  //     onChanged: (value) {
+  //       // Call the filter method in the cubit
+  //       // context.read<UserCubit>().filterComplaintsBySearch(value);
+  //       _filterComplaints(value);
+  //     },
+  //     decoration: InputDecoration(
+  //       hintText: 'Search...',
+  //       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+  //       prefixIcon: const Icon(Icons.search),
+  //     ),
+  //   );
+  // }
   Widget _buildSearchField() {
     return TextField(
       controller: searchController,
-      onChanged: (value) {
-        // Call the filter method in the cubit
-        // context.read<UserCubit>().filterComplaintsBySearch(value);
-        _filterComplaints(value);
-      },
+      onChanged: _onSearchChanged,
       decoration: InputDecoration(
         hintText: 'Search...',
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         prefixIcon: const Icon(Icons.search),
       ),
     );
+  }
+
+  void _onSearchChanged(String value) {
+    print("🔍 User typing: $value");
+
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      final trimmedSearch = value.trim();
+      print("🔍 Sending search query to API: '$trimmedSearch'");
+
+      context.read<UserCubit>().fetchComplaints(
+        search: trimmedSearch,
+        fromDate: fromDate,
+        toDate: toDate,
+        typeComplaintId: selectedCategory,
+      );
+      //filterComplaintsBySearch(trimmedSearch);
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    searchController.dispose();
+    super.dispose();
   }
 
   Widget _buildDropdown(String label) {
@@ -218,19 +259,21 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
                 (value) => DropdownMenuItem(value: value, child: Text(value)),
               )
               .toList(),
-            // remove filter
-              icon: selectedPriority != null
-            ? GestureDetector(
+      // remove filter
+      icon:
+          selectedPriority != null
+              ? GestureDetector(
                 onTap: () {
                   setState(() {
                     selectedPriority = null;
                   });
-
-                 
                 },
-                child: Icon(Icons.clear, color: const Color.fromARGB(145, 31, 63, 220)),
+                child: Icon(
+                  Icons.clear,
+                  color: const Color.fromARGB(145, 31, 63, 220),
+                ),
               )
-            : Icon(Icons.arrow_drop_down),
+              : Icon(Icons.arrow_drop_down),
     );
   }
 
@@ -266,29 +309,32 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
                     ),
                   )
                   .toList(),
-           // remove filter
-              icon: selectedStatus != null
-            ? GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedStatus = null;
-                  });
+          // remove filter
+          icon:
+              selectedStatus != null
+                  ? GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedStatus = null;
+                      });
 
-                  context.read<UserCubit>().fetchComplaints(
-                    fromDate: fromDate,
-                    toDate: toDate,
-                    typeComplaintId: selectedCategory,
-                  );
-                },
-                child: Icon(Icons.clear, color: const Color.fromARGB(145, 31, 63, 220)),
-              )
-            : Icon(Icons.arrow_drop_down),
+                      context.read<UserCubit>().fetchComplaints(
+                        fromDate: fromDate,
+                        toDate: toDate,
+                        typeComplaintId: selectedCategory,
+                      );
+                    },
+                    child: Icon(
+                      Icons.clear,
+                      color: const Color.fromARGB(145, 31, 63, 220),
+                    ),
+                  )
+                  : Icon(Icons.arrow_drop_down),
         );
       },
     );
   }
 
-  
   Widget _buildDropdownCategory(String label) {
     return BlocBuilder<UserCubit, UserState>(
       builder: (context, state) {
@@ -330,28 +376,30 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
               typeComplaintId: selectedCategory,
             );
           },
-          icon: selectedCategory != null
-            ? GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedCategory = null;
-                  });
+          icon:
+              selectedCategory != null
+                  ? GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedCategory = null;
+                      });
 
-                  context.read<UserCubit>().fetchComplaints(
-                    fromDate: fromDate,
-                    toDate: toDate,
-                    typeComplaintId: null,
-                  );
-                },
-                child: Icon(Icons.clear, color: const Color.fromARGB(145, 31, 63, 220)),
-              )
-            : Icon(Icons.arrow_drop_down),
+                      context.read<UserCubit>().fetchComplaints(
+                        fromDate: fromDate,
+                        toDate: toDate,
+                        typeComplaintId: null,
+                      );
+                    },
+                    child: Icon(
+                      Icons.clear,
+                      color: const Color.fromARGB(145, 31, 63, 220),
+                    ),
+                  )
+                  : Icon(Icons.arrow_drop_down),
         );
       },
     );
   }
-
-
 
   Widget _buildDropdownAssignTo(String label) {
     return DropdownButton<String>(
@@ -368,99 +416,104 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
                 (value) => DropdownMenuItem(value: value, child: Text(value)),
               )
               .toList(),
-        // remove filter
-              icon: selectedAssignedTo != null
-            ? GestureDetector(
+      // remove filter
+      icon:
+          selectedAssignedTo != null
+              ? GestureDetector(
                 onTap: () {
                   setState(() {
                     selectedAssignedTo = null;
                   });
-
-                 
                 },
-                child: Icon(Icons.clear, color: const Color.fromARGB(145, 31, 63, 220)),
+                child: Icon(
+                  Icons.clear,
+                  color: const Color.fromARGB(145, 31, 63, 220),
+                ),
               )
-            : Icon(Icons.arrow_drop_down),
+              : Icon(Icons.arrow_drop_down),
     );
   }
 
- 
-Widget _buildDatePickerFrom(String label) {
-  return ElevatedButton(
-    onPressed: () => _selectDate(context, true),
-    style: ElevatedButton.styleFrom(
-      backgroundColor: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-    ),
-    child: SizedBox(
-      width: 90,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            fromDate == null
-                ? label
-                : "${fromDate!.day}/${fromDate!.month}/${fromDate!.year}",
-            style: const TextStyle(color: Colors.black),
-          ),
-          if (fromDate != null)
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  fromDate = null;
-                });
-                context.read<UserCubit>().fetchComplaints(
-                  fromDate: null,
-                  toDate: toDate,
-                  typeComplaintId: selectedCategory,
-                );
-              },
-              child: const Icon(Icons.clear, color:  Color.fromARGB(145, 31, 63, 220)),
-            ),
-        ],
+  Widget _buildDatePickerFrom(String label) {
+    return ElevatedButton(
+      onPressed: () => _selectDate(context, true),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       ),
-    ),
-  );
-}
-
-
+      child: SizedBox(
+        width: 90,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              fromDate == null
+                  ? label
+                  : "${fromDate!.day}/${fromDate!.month}/${fromDate!.year}",
+              style: const TextStyle(color: Colors.black),
+            ),
+            if (fromDate != null)
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    fromDate = null;
+                  });
+                  context.read<UserCubit>().fetchComplaints(
+                    fromDate: null,
+                    toDate: toDate,
+                    typeComplaintId: selectedCategory,
+                  );
+                },
+                child: const Icon(
+                  Icons.clear,
+                  color: Color.fromARGB(145, 31, 63, 220),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildDatePickerTo(String label) {
     return ElevatedButton(
-    onPressed: () => _selectDate(context, false),
-    style: ElevatedButton.styleFrom(
-      backgroundColor: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-    ),
-    child: SizedBox(
-      width: 90,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            toDate == null
-                ? label
-                : "${toDate!.day}/${toDate!.month}/${toDate!.year}",
-            style: const TextStyle(color: Colors.black),
-          ),
-          if (toDate != null)
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  toDate = null;
-                });
-                context.read<UserCubit>().fetchComplaints(
-                  fromDate: fromDate,
-                  toDate: null,
-                  typeComplaintId: selectedCategory,
-                );
-              },
-              child: const Icon(Icons.clear, color:  Color.fromARGB(145, 31, 63, 220)),
-            ),
-        ],
+      onPressed: () => _selectDate(context, false),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       ),
-    ),
-  );
+      child: SizedBox(
+        width: 90,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              toDate == null
+                  ? label
+                  : "${toDate!.day}/${toDate!.month}/${toDate!.year}",
+              style: const TextStyle(color: Colors.black),
+            ),
+            if (toDate != null)
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    toDate = null;
+                  });
+                  context.read<UserCubit>().fetchComplaints(
+                    fromDate: fromDate,
+                    toDate: null,
+                    typeComplaintId: selectedCategory,
+                  );
+                },
+                child: const Icon(
+                  Icons.clear,
+                  color: Color.fromARGB(145, 31, 63, 220),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   List<Map<String, dynamic>> allComplaints = []; // Full list from API
