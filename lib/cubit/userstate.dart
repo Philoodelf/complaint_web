@@ -66,6 +66,11 @@ final class UserLoadedPage extends UserState {
   const UserLoadedPage({required this.complaints, required this.totalPages});
 }
 
+
+
+//update category succeed 
+final class UpdateSuccess extends UserState {}
+
 // search
 // final class UserSearch extends UserState{
 //   final List<Map<String, dynamic>> complaints;

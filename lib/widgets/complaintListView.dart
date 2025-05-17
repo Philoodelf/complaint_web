@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ComplaintListView extends StatefulWidget {
   // final int userId;
-  const ComplaintListView({super.key, });
+  const ComplaintListView({super.key});
 
   @override
   State<ComplaintListView> createState() => _ComplaintListViewState();
@@ -23,7 +23,7 @@ class _ComplaintListViewState extends State<ComplaintListView> {
     ); // No userId = get all complaints
   }
 
-  String? _selectedType;
+  String? selectedCategory;
 
   List<Map<String, String?>> complaints = [
     {
@@ -269,17 +269,19 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                     final complaint = complaints[index];
                     return GestureDetector(
                       onTap: () {
-                        _showComplaintDetails(context, complaint
-                        // {
-                        //   "serial": complaint.serialNo ?? "N/A",
-                        //   "details": complaint.description ?? "N/A",
-                        //   "status": complaint.statusName ?? "N/A",
-                        //   "type": complaint.typecomplaintName ?? "N/A",
-                        //   "priority": complaint.priority?.toString() ?? "N/A",
-                        //   "submissionDate": complaint.date ?? "N/A",
-                        //   "file": complaint.attachComplaint ?? "N/A",
-                        //   "assignedTo": complaint.assignTo ?? "N/A",
-                        // }
+                        _showComplaintDetails(
+                          context,
+                          complaint,
+                          // {
+                          //   "serial": complaint.serialNo ?? "N/A",
+                          //   "details": complaint.description ?? "N/A",
+                          //   "status": complaint.statusName ?? "N/A",
+                          //   "type": complaint.typecomplaintName ?? "N/A",
+                          //   "priority": complaint.priority?.toString() ?? "N/A",
+                          //   "submissionDate": complaint.date ?? "N/A",
+                          //   "file": complaint.attachComplaint ?? "N/A",
+                          //   "assignedTo": complaint.assignTo ?? "N/A",
+                          // }
                         );
                       },
                       child: Card(
@@ -568,7 +570,7 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                                 padding: EdgeInsets.all(12),
                                               ),
                                               Text(
-                                               complaint.statusName ?? "N/A",
+                                                complaint.statusName ?? "N/A",
                                                 style: TextStyle(
                                                   color: Colors.green,
                                                 ),
@@ -576,14 +578,17 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                               Padding(
                                                 padding: EdgeInsets.all(12),
                                               ),
-                                              Text(complaint.typecomplaintName ?? "N/A"),
+                                              Text(
+                                                complaint.typecomplaintName ??
+                                                    "N/A",
+                                              ),
                                             ],
                                           ),
 
                                           const SizedBox(height: 36), // Spacer
                                           // A single Text widget
-                                           Text(
-                                           complaint.voice?? "N/A",
+                                          Text(
+                                            complaint.voice ?? "No Audio",
                                             style: TextStyle(
                                               color: Color.fromARGB(
                                                 209,
@@ -597,11 +602,12 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                           const SizedBox(height: 12), // Spacer
                                           // Text with X Icon
                                           Row(
-                                            children:  [
+                                            children: [
                                               Icon(Icons.close),
                                               SizedBox(width: 8),
                                               Text(
-                                                complaint.attachComplaint?? "N/A",
+                                                complaint.attachComplaint ??
+                                                    "No Attached File",
                                                 style: TextStyle(
                                                   color: Color.fromARGB(
                                                     209,
@@ -619,13 +625,13 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                           Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
-                                            children:  [
+                                            children: [
                                               Row(
                                                 children: [
                                                   Icon(Icons.close, size: 16),
                                                   SizedBox(width: 4),
                                                   Text(
-                                                    complaint.name?? "N/A",
+                                                    complaint.name ?? "No Name",
                                                     style: TextStyle(
                                                       color: Color.fromARGB(
                                                         209,
@@ -642,7 +648,8 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                                   Icon(Icons.close, size: 16),
                                                   SizedBox(width: 4),
                                                   Text(
-                                                    complaint.email?? "N/A",
+                                                    complaint.email ??
+                                                        "No Email",
                                                     style: TextStyle(
                                                       color: Color.fromARGB(
                                                         209,
@@ -659,7 +666,8 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                                   Icon(Icons.close, size: 16),
                                                   SizedBox(width: 4),
                                                   Text(
-                                                    complaint.phoneNumber?? "N/A",
+                                                    complaint.phoneNumber ??
+                                                        "No Phone Number",
                                                     style: TextStyle(
                                                       color: Color.fromARGB(
                                                         209,
@@ -735,14 +743,35 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                                 () => _selectedPriority = val,
                                               ),
                                         ),
-                                        _buildDropdownBox(
-                                          hint: "Update Type",
-                                          value: _selectedType,
-                                          items: ['Bug', 'Feedback', 'Other'],
-                                          onChanged:
-                                              (val) => setState(
-                                                () => _selectedType = val,
-                                              ),
+                                        // _buildDropdownBox(
+                                        //   hint: "Update Type",
+                                        //   value: _selectedType,
+                                        //   items: ['Bug', 'Feedback', 'Other'],
+                                        //   onChanged:
+                                        //       (val) => setState(
+                                        //         () => _selectedType = val,
+                                        //       ),
+                                        // ),
+                                        //_buildDropdownCategory('Update '),
+                                        _buildCategoryUpdateDropdown(
+                                          complaint: complaint,
+                                          categories:
+                                              context
+                                                  .read<UserCubit>()
+                                                  .categories,
+                                          onUpdate: ({
+                                            required String complaintId,
+                                            required String newCategoryId,
+                                          }) {
+                                            context
+                                                .read<UserCubit>()
+                                                .updateComplaintCategory(
+                                                  complaint,
+                                                  
+                                                 // id: complaintId,
+                                                  typeComplaintId: newCategoryId,
+                                                );
+                                          },
                                         ),
                                       ],
                                     )
@@ -772,14 +801,34 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                                 () => _selectedPriority = val,
                                               ),
                                         ),
-                                        _buildDropdownBox(
-                                          hint: "Update Type",
-                                          value: _selectedType,
-                                          items: ['Bug', 'Feedback', 'Other'],
-                                          onChanged:
-                                              (val) => setState(
-                                                () => _selectedType = val,
-                                              ),
+                                        // _buildDropdownBox(
+                                        //   hint: "Update Type",
+                                        //   value: _selectedType,
+                                        //   items: ['Bug', 'Feedback', 'Other'],
+                                        //   onChanged:
+                                        //       (val) => setState(
+                                        //         () => _selectedType = val,
+                                        //       ),
+                                        // ),
+                                        _buildCategoryUpdateDropdown(
+                                          complaint: complaint,
+                                          categories:
+                                              context
+                                                  .read<UserCubit>()
+                                                  .categories,
+                                          onUpdate: ({
+                                            required String complaintId,
+                                            required String newCategoryId,
+                                          }) {
+                                            context
+                                                .read<UserCubit>()
+                                                .updateComplaintCategory(
+                                                  complaint,
+                                                //  id: complaintId,
+                                                  typeComplaintId:
+                                                      newCategoryId,
+                                                );
+                                          },
                                         ),
                                       ],
                                     ),
@@ -795,7 +844,7 @@ class _ComplaintListViewState extends State<ComplaintListView> {
                                       style: TextStyle(color: Colors.grey),
                                     ),
                                     _buildRoundedLabel(
-                                     " ${complaint.statusName ?? "N/A"}"
+                                      " ${complaint.statusName ?? "N/A"}",
                                     ),
                                     Text(
                                       'Content',
@@ -876,4 +925,261 @@ class _ComplaintListViewState extends State<ComplaintListView> {
       ),
     );
   }
+
+
+  Widget _buildCategoryUpdateDropdown({
+  required Complaint complaint,
+  required List<Map<String, dynamic>> categories,
+  required Function({
+    required String complaintId,
+    required String newCategoryId,
+  }) onUpdate,
+}) {
+  return StatefulBuilder(
+    builder: (context, setState) {
+      // Local selectedCategoryId state
+      String? selectedCategoryId = complaint.typeComplaintId?.toString();
+
+      print("📦 Rendering dropdown for complaint ID: ${complaint.id}, current category: $selectedCategoryId");
+      print("📋 Categories loaded: ${categories.length}");
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        width: 220,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(10),
+          color: const Color.fromARGB(26, 158, 158, 158),
+        ),
+        child: DropdownButton<String>(
+          value: selectedCategoryId,
+          isExpanded: true,
+          hint: const Text("Update Category"),
+          items: categories.map((category) {
+            final catId = category["id"].toString();
+            final catName = category["name"].toString();
+            print("🔹 Adding category: $catName ($catId)");
+            return DropdownMenuItem<String>(
+              value: catId,
+              child: Text(catName),
+            );
+          }).toList(),
+          onChanged: (newValue) {
+            if (newValue != null && newValue != selectedCategoryId) {
+              setState(() => selectedCategoryId = newValue); // Update local state
+
+              try {
+                // Call the update function passed as a callback
+                onUpdate(
+                  complaintId: complaint.id.toString(),
+                  newCategoryId: newValue,
+                );
+                print("🚀 onUpdate called for complaint ${complaint.id} with new category $newValue");
+              } catch (e) {
+                print("❌ Error in onUpdate: $e");
+              }
+            }
+          },
+          icon: const Icon(Icons.edit),
+        ),
+      );
+    },
+  );
+}
+
+
+
+// Widget _buildCategoryUpdateDropdown({
+//   required Complaint complaint,
+//   required List<Map<String, dynamic>> categories,
+//   required Function({
+//     required String complaintId,
+//     required String newCategoryId,
+//   }) onUpdate,
+// }) {
+//   final String? selectedCategoryId = complaint.typeComplaintId?.toString();
+
+//   print("📦 Rendering dropdown for complaint ID: ${complaint.id}, current category: $selectedCategoryId");
+//   print("📋 Categories loaded: ${categories.length}");
+
+//   return Container(
+//     padding: const EdgeInsets.symmetric(horizontal: 12),
+//     width: 220,
+//     decoration: BoxDecoration(
+//       border: Border.all(color: Colors.grey),
+//       borderRadius: BorderRadius.circular(10),
+//       color: const Color.fromARGB(26, 158, 158, 158),
+//     ),
+//     child: DropdownButton<String>(
+//       value: selectedCategoryId,
+//       isExpanded: true,
+//       hint: const Text("Update Category"),
+//       items: categories.map((category) {
+//         final catId = category["id"].toString();
+//         final catName = category["name"].toString();
+//         print("🔹 Adding category: $catName ($catId)");
+//         return DropdownMenuItem<String>(
+//           value: catId,
+//           child: Text(catName),
+//         );
+//       }).toList(),
+//       onChanged: (newValue) {
+//         if (newValue != null && newValue != selectedCategoryId) {
+//           // Call the onUpdate callback with the new category ID
+//           try {
+//             onUpdate(
+//               complaintId: complaint.id.toString(),
+//               newCategoryId: newValue,
+//             );
+//             print("🚀 onUpdate called for complaint ${complaint.id} with new category $newValue");
+//           } catch (e) {
+//             print("❌ Error in onUpdate: $e");
+//           }
+//         }
+//       },
+//       icon: const Icon(Icons.edit),
+//     ),
+//   );
+// }
+
+  // Widget _buildCategoryUpdateDropdown({
+  //   required Complaint complaint,
+  //   required List<Map<String, dynamic>> categories,
+  //   required Function({
+  //     required String complaintId,
+  //     required String newCategoryId,
+  //   })
+  //   onUpdate,
+  // }) {
+  //   return StatefulBuilder(
+  //     builder: (context, setState) {
+  //       String? selectedCategoryId = complaint.typeComplaintId?.toString();
+  //         print("📦 Rendering dropdown for complaint ID: ${complaint.id}, current category: $selectedCategoryId");
+  //     print("📋 Categories loaded: ${categories.length}");
+
+  //       return Container(
+  //         padding: const EdgeInsets.symmetric(horizontal: 12),
+  //         width: 220,
+  //         decoration: BoxDecoration(
+  //           border: Border.all(color: Colors.grey),
+  //           borderRadius: BorderRadius.circular(10),
+  //           color: const Color.fromARGB(26, 158, 158, 158),
+  //         ),
+  //         child: DropdownButton<String>(
+  //           value: selectedCategoryId,
+  //           isExpanded: true,
+  //           hint: const Text("Update Category"),
+  //           items:
+  //               categories.map((category) {
+  //                 final catId = category["id"].toString();
+  //           final catName = category["name"].toString();
+  //            print("🔹 Adding category: $catName ($catId)");
+  //                 return DropdownMenuItem<String>(
+  //                   value: catId,
+  //                   //category["id"].toString(),
+  //                   child: Text(catName),
+  //                   //Text(category["name"].toString()),
+  //                 );
+  //               }).toList(),
+  //           onChanged: (newValue) {
+  //             if (newValue != null && newValue != selectedCategoryId) {
+  //               setState(() => selectedCategoryId = newValue);
+
+  //               // 🔁 Pass both complaint ID and new category ID to update
+  //               try {
+  //               onUpdate(
+  //                 complaintId: complaint.id.toString(),
+  //                 newCategoryId: newValue,
+  //               );
+  //               print("🚀 onUpdate called for complaint ${complaint.id} with new category $newValue");
+  //             } catch (e) {
+  //               print("❌ Error in onUpdate: $e");
+  //             }
+  //             }
+  //           },
+  //           icon: const Icon(Icons.edit),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
+
+  // Widget _buildDropdownCategory(String label) {
+  //   return BlocBuilder<UserCubit, UserState>(
+  //     builder: (context, state) {
+  //       final cubit = context.read<UserCubit>();
+  //       final List<Map<String, dynamic>> categories = cubit.categories;
+  //       print("🔍 Selected Category: $selectedCategory");
+
+  //       print("📦 Categories fetched: $categories");
+  //       print("🧾 Categories loaded: ${categories.length}");
+
+  //       // 🔒 Reset selection if ID not found
+  //       // if (selectedCategory != null &&
+  //       //     !categories.any(
+  //       //       (cat) => cat["id"].toString() == selectedCategory,
+  //       //     )) {
+  //       //   selectedCategory = null;
+  //       // }
+
+  //       return Flexible(
+  //         child: Container(
+  //           padding: const EdgeInsets.symmetric(horizontal: 12),
+  //           width: 200,
+  //           decoration: BoxDecoration(
+  //             border: Border.all(color: Colors.grey),
+  //             borderRadius: BorderRadius.circular(10),
+  //             color: const Color.fromARGB(26, 158, 158, 158),
+  //           ),
+  //           child: DropdownButton<String>(
+  //             isExpanded: true,
+  //             value: selectedCategory,
+  //             hint: Text(label),
+  //             items:
+  //                 categories.map((category) {
+  //                   return DropdownMenuItem<String>(
+  //                     value: category["id"].toString(),
+  //                     child: Text(category["name"].toString().trim()),
+  //                   );
+  //                 }).toList(),
+  //             onChanged: (value) {
+  //               setState(() {
+  //                 selectedCategory = value;
+  //                 print("✅ Selected category ID: $selectedCategory");
+  //               });
+
+  //               // Now use the Cubit method that handles Dio headers
+  //               context.read<UserCubit>().fetchComplaints(
+  //                 // fromDate: fromDate,
+  //                 // toDate: toDate,
+  //                 typeComplaintId: null,
+  //               );
+  //               //context.read<UserCubit>().fetchCategories();
+  //             },
+  //             icon:
+  //                 selectedCategory != null
+  //                     ? GestureDetector(
+  //                       onTap: () {
+  //                         setState(() {
+  //                           selectedCategory = null;
+  //                         });
+
+  //                          context.read<UserCubit>().fetchComplaints(
+  //                         //   // fromDate: fromDate,
+  //                         //   // toDate: toDate,
+  //                            typeComplaintId: null,
+  //                          );
+  //                       },
+  //                       child: Icon(
+  //                         Icons.clear,
+  //                         color: const Color.fromARGB(145, 31, 63, 220),
+  //                       ),
+  //                     )
+  //                     : Icon(Icons.arrow_drop_down),
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 }

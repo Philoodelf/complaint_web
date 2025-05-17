@@ -13,7 +13,7 @@ class DioConsumer extends ApiConsumer {
       'PageNo': '1',
       'NoOfItems': '20',
       'userId': "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
-       if (typeComplaintId != null && typeComplaintId.isNotEmpty)
+      if (typeComplaintId != null && typeComplaintId.isNotEmpty)
         'TypecomplaintId': typeComplaintId, // ✅ Only add if valid
     };
   }
@@ -32,55 +32,80 @@ class DioConsumer extends ApiConsumer {
     throw UnimplementedError();
   }
 
-//   @override
-//  Future<Response?> get(
-//   String path, {
-//   Object? data,
-//   Map<String, dynamic>? queryParameters,
-//   Map<String, dynamic>? headers,
-// }) async {
-//     try {
-//       final response = await dio.get(
-//         path,
-//         queryParameters: queryParameters,
-//         options: Options( headers: headers
-//           // headers: headers, // Set headers here
-//         ),
-//       );
-//       return response;
-//     } on DioException catch (e) {
-//       print("❌ Dio GET Error: ${e.response?.data ?? e.message}");
-//       return e.response;
-//     }
-//   }
-   @override
-Future<Response?> get(
-  String path, {
-  Object? data,
-  Map<String, dynamic>? queryParameters,
-  Map<String, dynamic>? headers,
-}) async {
-  try {
-    final response = await dio.get(
-      path,
-      queryParameters: queryParameters,
-      options: Options(headers: headers),
-    );
-    return response;
-  } on DioException catch (e) {
-    print("❌ Dio GET Error: ${e.response?.data ?? e.message}");
-    return e.response; // May be null
-  }
-}
-
+  //   @override
+  //  Future<Response?> get(
+  //   String path, {
+  //   Object? data,
+  //   Map<String, dynamic>? queryParameters,
+  //   Map<String, dynamic>? headers,
+  // }) async {
+  //     try {
+  //       final response = await dio.get(
+  //         path,
+  //         queryParameters: queryParameters,
+  //         options: Options( headers: headers
+  //           // headers: headers, // Set headers here
+  //         ),
+  //       );
+  //       return response;
+  //     } on DioException catch (e) {
+  //       print("❌ Dio GET Error: ${e.response?.data ?? e.message}");
+  //       return e.response;
+  //     }
+  //   }
   @override
-  Future patch(
+  Future<Response?> get(
     String path, {
     Object? data,
     Map<String, dynamic>? queryParameters,
-  }) {
-    // TODO: implement patch
-    throw UnimplementedError();
+    Map<String, dynamic>? headers,
+  }) async {
+    try {
+      final response = await dio.get(
+        path,
+        queryParameters: queryParameters,
+        options: Options(headers: headers),
+      );
+      return response;
+    } on DioException catch (e) {
+      print("❌ Dio GET Error: ${e.response?.data ?? e.message}");
+      return e.response; // May be null
+    }
+  }
+
+  // @override
+  // Future patch(
+  //   String path, {
+  //   Object? data,
+  //   Map<String, dynamic>? queryParameters,
+  // }) {
+  //   // TODO: implement patch
+  //   throw UnimplementedError();
+  // }
+  @override
+  Future<Response?> patch(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+    Map<String, dynamic>? headers,
+  }) async {
+    try {
+      final response = await dio.patch(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: Options(headers: headers),
+      );
+      return response;
+    } on DioException catch (e) {
+      print(
+        "❌ Dio PATCH Error: ${e.response?.statusCode} - ${e.response?.data ?? e.message}",
+      );
+      return e.response;
+    } catch (e) {
+      print("❌ Unexpected error in PATCH: $e");
+      rethrow;
+    }
   }
 
   @override
@@ -88,6 +113,7 @@ Future<Response?> get(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
+    Map<String, dynamic>? headers,
   }) async {
     try {
       final response = await dio.post(

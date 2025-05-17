@@ -4,4 +4,5 @@ class Endpoints {
   static String statusComplaint = "/api/complaint/GetAllStatuscomplaint";
   static String categoryComplaint="/api/complaint/GetAllCatagorycomplaint";
   static String allComplaints="/api/complaint/GetAllPages2";
+  static String updateComplaints="/api/complaint/AddAndUpdatecomplaint";
 }

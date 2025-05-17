@@ -137,7 +137,7 @@ class UserCubit extends Cubit<UserState> {
   DateTime? currentToDate;
   String? currentTypeComplaintId;
   String? currentSearch;
-  
+
   Future<void> fetchComplaints({
     DateTime? fromDate,
     DateTime? toDate,
@@ -282,6 +282,105 @@ class UserCubit extends Cubit<UserState> {
   List<Complaint> filteredComplaints = [];
   List<Complaint> allComplaints = [];
 
+  // update category
+  // Future<void> updateComplaintCategory({
+  //   DateTime? fromDate,
+  //   DateTime? toDate,
+  //   String? typeComplaintId,
+  //   String? search,
+  //   int pageNo = 1,
+  //   int noOfItems = 20,
+  //   required String complaintId,
+  //   required String newCategoryId,
+  // }) async {
+  //   emit(PostLoading());
+  //   try {
+  //     final headers = {
+  //       "Content-Type": "application/json",
+  //       "Accept": "application/json",
+  //       'userId': "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
+  //       'PageNo': pageNo.toString(), // Pagination page number
+  //       'NoOfItems': noOfItems.toString(), // Number of items per page
+  //       if (typeComplaintId != null && typeComplaintId.isNotEmpty)
+  //         'TypecomplaintId': typeComplaintId,
+  //       if (search != null && search.trim().isNotEmpty)
+  //         'KeyWord': search.trim(),
+  //     };
+  //     final queryParams = <String, dynamic>{};
+  //     final token = await TokenStorage.getToken();
+  //     final response = await api.get(
+  //       Endpoints.allComplaints,
+  //       queryParameters: queryParams,
+  //       headers: headers,
+  //     );
+  //     final List<dynamic> data =
+  //         response.data['data']; // adjust if your key is different
+  //     final complaints = data.map((json) => Complaint.fromJson(json)).toList();
+
+  //     for (var complaint in complaints) {
+  //       print("🆔 Complaint ID: ${complaint.id}");
+  //     }
+
+  //     if (response.statusCode == 200 || response.statusCode == 204) {
+  //       // Refresh the complaints list or update locally if needed
+  //       fetchComplaints();
+  //       emit(UpdateSuccess()); // You can define this state
+  //     } else {
+  //       emit(UserError("Failed to update category"));
+  //     }
+  //   } catch (e) {
+  //     emit(UserError("Error: $e"));
+  //   }
+  Future<void> updateComplaintCategory(Complaint complaint,{
+ // required String id,
+   String? typeComplaintId,
+    
+   
+}) async {
+  final id = complaint.id.toString();
+  emit(PostLoading());
+
+  try {
+    final headers = {
+      "Content-Type": "multipart/form-data",
+      //"Accept": "application/json",
+      "userId": "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
+    };
+
+    final formData = FormData.fromMap({
+      "id": int.parse(complaint.id.toString()), // ✅ Ensure it's always sent
+      "Description": complaint.description ?? "",
+      "TypecomplaintId": typeComplaintId, // ✅ Use correct field name
+    });
+
+     print("📤 Sending update for complaint ID: ${complaint.id} with new category ID: $typeComplaintId");
+    print("📦 Body: ${formData.fields}");
+
+    final response = await api.post(
+      Endpoints.updateComplaints, // use the correct POST endpoint
+      data: formData,
+      headers: headers,
+    );
+     print("📬 Response status: ${response?.statusCode}");
+    print("📬 Response data: ${response?.data}");
+
+    if (response.statusCode == 200 && response.data['result'] == true ) {
+      print("✅ Complaint category updated successfully.");
+      await fetchComplaints(); // Refresh list after update
+     
+
+      emit(UpdateSuccess());
+    } else {
+      print("❌ Failed to update complaint category: ${response?.data}");
+      emit(UserError("Failed to update complaint category."));
+    }
+  } catch (e) {
+    print("❌ Exception occurred while updating category: $e");
+    emit(UserError("Error updating complaint category: $e"));
+  }
+}
+}
+
   // Future<void> filterComplaintsBySearch(String query) async {
   //   final trimmedQuery = query.trim();
   //   print("🔍 Filtering complaints with query: '$trimmedQuery'");
@@ -390,4 +489,4 @@ class UserCubit extends Cubit<UserState> {
   //     UserLoaded(filteredComplaints, totalPages, pageNo, noOfItems, totalItems),
   //   );
   // }
-}
+
