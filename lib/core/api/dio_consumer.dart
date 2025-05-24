@@ -66,6 +66,7 @@ class DioConsumer extends ApiConsumer {
         queryParameters: queryParameters,
         options: Options(headers: headers),
       );
+      print(response.data);
       return response;
     } on DioException catch (e) {
       print("❌ Dio GET Error: ${e.response?.data ?? e.message}");

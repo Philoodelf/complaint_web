@@ -3,11 +3,7 @@ class Complaint {
   final String? description;
   final String? serialNo;
 
-  Complaint({
-    this.content,
-    this.description,
-    this.serialNo,
-  });
+  Complaint({this.content, this.description, this.serialNo});
 
   // Factory constructor to create a Complaint from JSON
   factory Complaint.fromJson(Map<String, dynamic> json) {

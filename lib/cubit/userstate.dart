@@ -62,8 +62,9 @@ final class StatusLoaded extends UserState {}
 final class UserLoadedPage extends UserState {
   final List<Complaint> complaints;
   final int totalPages;
+ // final int noOfItems;
 
-  const UserLoadedPage({required this.complaints, required this.totalPages});
+  const UserLoadedPage( {required this.complaints, required this.totalPages});
 }
 
 

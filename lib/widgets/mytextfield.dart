@@ -26,10 +26,12 @@ class _MyTextFieldState extends State<MyTextField> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25),
       child: TextField(
+        
         keyboardType: widget.keyboardType,
         controller: widget.controller,
         obscureText: widget.isPassword ? _isObscured : false, // Apply toggle only if it's a password field
         decoration: InputDecoration(
+      
           labelText: widget.variable,
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
@@ -39,7 +41,7 @@ class _MyTextFieldState extends State<MyTextField> {
             borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(color: Colors.black),
           ),
-          fillColor: const Color.fromARGB(150, 238, 238, 238),
+          fillColor:  Colors.white, //Color.fromARGB(150, 238, 238, 238),
           filled: true,
           suffixIcon: widget.isPassword
               ? IconButton(

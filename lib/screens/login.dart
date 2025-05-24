@@ -217,41 +217,61 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      MyTextField(
-                        variable: 'Username',
-                        keyboardType: TextInputType.name,
-                        isPassword: false,
-                        controller: usernameController,
+                      SizedBox(
+                        width: 400,
+
+                        child: MyTextField(
+                          variable: 'Username',
+                          keyboardType: TextInputType.name,
+                          isPassword: false,
+                          controller: usernameController,
+                        ),
                       ),
                       const SizedBox(height: 10),
-                      MyTextField(
-                        variable: 'Password',
-                        keyboardType: TextInputType.text,
-                        isPassword: true,
-                        controller: passwordController,
+                      SizedBox(
+                        width: 400,
+
+                        child: MyTextField(
+                          variable: 'Password',
+                          keyboardType: TextInputType.text,
+                          isPassword: true,
+                          controller: passwordController,
+                        ),
                       ),
                       const SizedBox(height: 20),
                       state is PostLoading
                           ? const CircularProgressIndicator()
-                          : ElevatedButton(
-                            onPressed: () {
-                              if (usernameController.text.isEmpty ||
-                                  passwordController.text.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Please enter both username and password!',
+                          : SizedBox(
+                            width: 350,
+                            height: 48,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (usernameController.text.isEmpty ||
+                                    passwordController.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Please enter both username and password!',
+                                      ),
                                     ),
-                                  ),
+                                  );
+                                  return;
+                                }
+                                context.read<UserCubit>().logIn(
+                                  usernameController.text,
+                                  passwordController.text,
                                 );
-                                return;
-                              }
-                              context.read<UserCubit>().logIn(
-                                usernameController.text,
-                                passwordController.text,
-                              );
-                            },
-                            child: Text('LogIn'),
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color.fromARGB(
+                                  226,
+                                  10,
+                                  71,
+                                  120,
+                                ),
+                              ),
+                              child: Text('LogIn',style: TextStyle(color: Colors.white),),
+                            ),
                           ),
                     ],
                   ),

@@ -17,10 +17,9 @@ class Complaint {
   final String? email;
   final String? phoneNumber;
   final String? correctiveAction;
-  
+  final String? subject;
 
-  Complaint(
-     {
+  Complaint({
     required this.id,
     this.typeComplaintId,
     this.typeComplaintName,
@@ -39,29 +38,30 @@ class Complaint {
     this.email,
     this.phoneNumber,
     this.correctiveAction,
+    this.subject,
   });
 
- factory Complaint.fromJson(Map<String, dynamic> json) {
-  return Complaint(
-    id: json['id'],
-    typeComplaintId: json['typecomplaintId'],
-    typeComplaintName: json['typecomplaintName']?.trim(),
-    description: json['description'],
-    content: json['content'],
-    serialNo: json['serialNo'],
-    date: json['date'],
-    statusName: json['statusName'],
-    statusId: json['statusId']?.toString(),
-    typecomplaintName: json['typecomplaintName'],
-    priority: json['priority'],
-    attachComplaint: json['attachComplaint'],
-    assignTo: json['assignTo'],
-    voice: json['voice']?.toString(),
-    name: json['name']?.toString(),
-    email: json['email']?.toString(),
-    phoneNumber: json['phoneNumber']?.toString(),
-    correctiveAction: json['correctiveAction']?.toString(),
-  );
-}
-
+  factory Complaint.fromJson(Map<String, dynamic> json) {
+    return Complaint(
+      id: json['id'],
+      typeComplaintId: json['typecomplaintId'],
+      typeComplaintName: json['typecomplaintName']?.trim(),
+      description: json['description'],
+      content: json['content'],
+      serialNo: json['serialNo'],
+      date: json['date'],
+      statusName: json['statusName'],
+      statusId: json['statusId']?.toString(),
+      typecomplaintName: json['typecomplaintName'],
+      priority: json['priority'],
+      attachComplaint: json['attachComplaint'],
+      assignTo: json['assignTo'],
+      voice: json['voice']?.toString(),
+      name: json['name']?.toString(),
+      email: json['email']?.toString(),
+      phoneNumber: json['phoneNumber']?.toString(),
+      correctiveAction: json['correctiveAction']?.toString(),
+      subject:json['subject']?.toString(),
+    );
+  }
 }

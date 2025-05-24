@@ -7,6 +7,7 @@ import 'package:complaint_web/shared_preferences/storage_token.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 class UserCubit extends Cubit<UserState> {
   final ApiConsumer api;
@@ -144,13 +145,13 @@ class UserCubit extends Cubit<UserState> {
     String? typeComplaintId,
     String? search,
     int pageNo = 1,
-    int noOfItems = 20, // Number of items per page ????
+    int noOfItems = 20,
   }) async {
     emit(PostLoading());
-    currentFromDate = fromDate ?? currentFromDate;
-    currentToDate = toDate ?? currentToDate;
-    currentTypeComplaintId = typeComplaintId ?? currentTypeComplaintId;
-    currentSearch = search ?? currentSearch;
+    // currentFromDate = fromDate ?? currentFromDate;
+    // currentToDate = toDate ?? currentToDate;
+    // currentTypeComplaintId = typeComplaintId ?? currentTypeComplaintId;
+    // currentSearch = search ?? currentSearch;
     try {
       print(
         "📅 Filtering from: $fromDate to: $toDate 🏷️ Category: $typeComplaintId search: $search",
@@ -158,14 +159,14 @@ class UserCubit extends Cubit<UserState> {
 
       final queryParams = <String, dynamic>{};
 
-      if (fromDate != null) {
-        queryParams['fromDate'] =
-            fromDate.toIso8601String().split('T')[0]; // YYYY-MM-DD
-      }
+      // if (fromDate != null) {
+      //   queryParams['fromDate'] =
+      //       fromDate.toIso8601String().split('T')[0]; // YYYY-MM-DD
+      // }
 
-      if (toDate != null) {
-        queryParams['toDate'] = toDate.toIso8601String().split('T')[0];
-      }
+      // if (toDate != null) {
+      //   queryParams['toDate'] = toDate.toIso8601String().split('T')[0];
+      // }
 
       // if (search != null && search.isNotEmpty) {
       //   queryParams['KeyWord'] = search.trim();
@@ -184,6 +185,8 @@ class UserCubit extends Cubit<UserState> {
           'TypecomplaintId': typeComplaintId,
         if (search != null && search.trim().isNotEmpty)
           'KeyWord': search.trim(),
+        if (fromDate != null) 'startdate': fromDate.toIso8601String(),
+        if (toDate != null) 'enddate': toDate.toIso8601String(),
       };
       print("🔍 Search query: $search");
       print("📡 Sending headers: $headers");
@@ -201,43 +204,11 @@ class UserCubit extends Cubit<UserState> {
       if (response.statusCode == 200 && response.data['result'] == true) {
         final List<dynamic> jsonList = response.data['data'] ?? [];
 
-        if (jsonList == null) {
-          print("❗ API returned null for 'data'");
-          emit(UserError("API returned null for complaints list."));
-          return;
-        }
-
-        print("📦 Total complaints received: ${jsonList.length}");
-
         final complaints =
             jsonList
                 .map((item) {
                   try {
-                    final complaintDateStr = item["date"];
-                    if (complaintDateStr == null) {
-                      print("⚠️ Skipping item with no date: $item");
-                      return null;
-                    }
-
-                    final complaintDate = DateTime.parse(complaintDateStr);
-                    print("🗓️ Complaint Date: $complaintDate");
-
-                    bool isWithinRange = true;
-
-                    if (fromDate != null && complaintDate.isBefore(fromDate)) {
-                      isWithinRange = false;
-                    }
-
-                    if (toDate != null && complaintDate.isAfter(toDate)) {
-                      isWithinRange = false;
-                    }
-
-                    if (isWithinRange) {
-                      return Complaint.fromJson(item as Map<String, dynamic>);
-                    } else {
-                      print("⛔ Outside date range: $complaintDate");
-                      return null;
-                    }
+                    return Complaint.fromJson(item);
                   } catch (e) {
                     print("❌ Error parsing item: $item");
                     print("   ↪️ Reason: $e");
@@ -282,103 +253,66 @@ class UserCubit extends Cubit<UserState> {
   List<Complaint> filteredComplaints = [];
   List<Complaint> allComplaints = [];
 
-  // update category
-  // Future<void> updateComplaintCategory({
-  //   DateTime? fromDate,
-  //   DateTime? toDate,
-  //   String? typeComplaintId,
-  //   String? search,
-  //   int pageNo = 1,
-  //   int noOfItems = 20,
-  //   required String complaintId,
-  //   required String newCategoryId,
-  // }) async {
-  //   emit(PostLoading());
-  //   try {
-  //     final headers = {
-  //       "Content-Type": "application/json",
-  //       "Accept": "application/json",
-  //       'userId': "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
-  //       'PageNo': pageNo.toString(), // Pagination page number
-  //       'NoOfItems': noOfItems.toString(), // Number of items per page
-  //       if (typeComplaintId != null && typeComplaintId.isNotEmpty)
-  //         'TypecomplaintId': typeComplaintId,
-  //       if (search != null && search.trim().isNotEmpty)
-  //         'KeyWord': search.trim(),
-  //     };
-  //     final queryParams = <String, dynamic>{};
-  //     final token = await TokenStorage.getToken();
-  //     final response = await api.get(
-  //       Endpoints.allComplaints,
-  //       queryParameters: queryParams,
-  //       headers: headers,
-  //     );
-  //     final List<dynamic> data =
-  //         response.data['data']; // adjust if your key is different
-  //     final complaints = data.map((json) => Complaint.fromJson(json)).toList();
+  // update complaint
+  Future<void> updateComplaintCategory(
+    Complaint complaint, {
+    // required String id,
+    String? typeComplaintId,
+     String? updatedField,
+     String? updatedValue,
+  }) async {
+    // final id = complaint.id.toString();
+    emit(PostLoading());
 
-  //     for (var complaint in complaints) {
-  //       print("🆔 Complaint ID: ${complaint.id}");
-  //     }
+    try {
+      final headers = {
+        "Content-Type": "multipart/form-data",
+        //"Accept": "application/json",
+        "userId": "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
+      };
 
-  //     if (response.statusCode == 200 || response.statusCode == 204) {
-  //       // Refresh the complaints list or update locally if needed
-  //       fetchComplaints();
-  //       emit(UpdateSuccess()); // You can define this state
-  //     } else {
-  //       emit(UserError("Failed to update category"));
-  //     }
-  //   } catch (e) {
-  //     emit(UserError("Error: $e"));
-  //   }
-  Future<void> updateComplaintCategory(Complaint complaint,{
- // required String id,
-   String? typeComplaintId,
-    
-   
-}) async {
-  final id = complaint.id.toString();
-  emit(PostLoading());
+      final formData = FormData.fromMap({
+        "id": int.parse(complaint.id.toString()), // ✅ Ensure it's always sent
+        "Content":
+            updatedField == "content" ? updatedValue : complaint.content ?? "",
+        "CorrectiveAction":
+            updatedField == "correctiveAction"
+                ? updatedValue
+                : complaint.correctiveAction ?? "",
+        "Subject":
+            updatedField == "statusName"
+                ? updatedValue
+                : complaint.statusName ?? "",
+        "TypecomplaintId": typeComplaintId, // ✅ Use correct field name
+      });
 
-  try {
-    final headers = {
-      "Content-Type": "multipart/form-data",
-      //"Accept": "application/json",
-      "userId": "d03a0db5-6208-4a27-a1be-1f9aa4c3cc26",
-    };
+      print(
+        "📤 Sending update for complaint ID: ${complaint.id} with new category ID: $typeComplaintId",
+      );
+      print("📦 Body: ${formData.fields}");
 
-    final formData = FormData.fromMap({
-      "id": int.parse(complaint.id.toString()), // ✅ Ensure it's always sent
-      "Description": complaint.description ?? "",
-      "TypecomplaintId": typeComplaintId, // ✅ Use correct field name
-    });
+      final response = await api.post(
+        Endpoints.updateComplaints,
+        data: formData,
+        headers: headers,
+      );
+      print("📬 Response status: ${response?.statusCode}");
+      print("📬 Response data: ${response?.data}");
 
-     print("📤 Sending update for complaint ID: ${complaint.id} with new category ID: $typeComplaintId");
-    print("📦 Body: ${formData.fields}");
+      if (response.statusCode == 200 && response.data['result'] == true) {
+        print("✅ Complaint category updated successfully.");
+        //  await fetchComplaints(); // Refresh list after update
 
-    final response = await api.post(
-      Endpoints.updateComplaints, // use the correct POST endpoint
-      data: formData,
-      headers: headers,
-    );
-     print("📬 Response status: ${response?.statusCode}");
-    print("📬 Response data: ${response?.data}");
-
-    if (response.statusCode == 200 && response.data['result'] == true ) {
-      print("✅ Complaint category updated successfully.");
-      await fetchComplaints(); // Refresh list after update
-     
-
-      emit(UpdateSuccess());
-    } else {
-      print("❌ Failed to update complaint category: ${response?.data}");
-      emit(UserError("Failed to update complaint category."));
+        emit(UpdateSuccess());
+      } else {
+        print("❌ Failed to update complaint category: ${response?.data}");
+        emit(UserError("Failed to update complaint category."));
+      }
+    } catch (e) {
+      print("❌ Exception occurred while updating category: $e");
+      emit(UserError("Error updating complaint category: $e"));
     }
-  } catch (e) {
-    print("❌ Exception occurred while updating category: $e");
-    emit(UserError("Error updating complaint category: $e"));
   }
-}
 }
 
   // Future<void> filterComplaintsBySearch(String query) async {

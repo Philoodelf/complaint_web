@@ -20,16 +20,18 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-   int currentPage = 1;  // Track the current page
-  int totalPages = 1;   // Track the total number of pages (could be dynamically updated)
+  late int noOfItems;
+  int selectedNoOfItems = 20;
+  int currentPage = 1; // Track the current page
+  int totalPages =
+      1; // Track the total number of pages (could be dynamically updated)
   List<Complaint> complaints = []; // Store the fetched complaints
- 
+
   // @override
   // void initState() {
   //   super.initState();
   //   fetchComplaints(pageNo: currentPage);  // Fetch initial complaints
   // }
-
 
   // Future<void> fetchComplaints({int pageNo = 1}) async {
   //   await context.read<UserCubit>().fetchComplaints(pageNo: pageNo);
@@ -38,8 +40,7 @@ class _DashboardState extends State<Dashboard> {
   //     totalPages = context.read<UserCubit>().state.totalPages;  // Update total pages
   //   });
   // }
- 
- 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,29 +74,208 @@ class _DashboardState extends State<Dashboard> {
         ),
       ),
 
-      body:
-      // BlocBuilder<UserCubit, UserState>(
-      //   builder: (context, state) {
-      //     if (state is PostLoading) {
-      //       return const Center(child: CircularProgressIndicator());
-      //     } else if (state is UserLoaded) {
-      //       return ResponsiveScreen(
-      //         mobile: _buildDashboardLayout(state),
-      //         tablet: _buildDashboardLayout(state),
-      //         desktop: _buildDashboardLayout(state),
-      //       );
-      //     } else {
-      //       return const Center(child: Text("Failed to load complaints"));
-      //     }
-      //   },
-      // ),
-       ResponsiveScreen(
+      body: ResponsiveScreen(
         mobile: _buildMobileDashboard(),
         tablet: _buildTabletDashboard(),
         desktop: _buildDesktopDashboard(),
       ),
     );
-  } // Empty ListView
+  }
+
+  Widget _buildMobileDashboard() {
+    return Column(
+      children: [
+        ResponsiveFilterRow(),
+        Expanded(child: ComplaintListView()),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Items per page dropdown
+              Row(
+                children: [
+                  const Text("Items per page: "),
+                  const SizedBox(width: 8),
+                  DropdownButton<int>(
+                    value: selectedNoOfItems,
+                    items:
+                        [10, 20, 50, 100].map((int value) {
+                          return DropdownMenuItem<int>(
+                            value: value,
+                            child: Text(value.toString()),
+                          );
+                        }).toList(),
+                    onChanged: (int? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          selectedNoOfItems = newValue;
+                          currentPage = 1;
+                        });
+
+                        context.read<UserCubit>().fetchComplaints(
+                          pageNo: currentPage,
+                          noOfItems: selectedNoOfItems,
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+
+              // Pagination
+              Pagination(
+                fromDate: null,
+                toDate: null,
+                selectedCategoryId: null,
+                searchQuery: null,
+                noOfItems: selectedNoOfItems,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabletDashboard() {
+    return Column(
+      children: [
+        ResponsiveFilterRow(),
+        Expanded(child: ComplaintListView()),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Items per page dropdown
+              Row(
+                children: [
+                  const Text("Items per page: "),
+                  const SizedBox(width: 8),
+                  DropdownButton<int>(
+                    value: selectedNoOfItems,
+                    items:
+                        [10, 20, 50, 100].map((int value) {
+                          return DropdownMenuItem<int>(
+                            value: value,
+                            child: Text(value.toString()),
+                          );
+                        }).toList(),
+                    onChanged: (int? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          selectedNoOfItems = newValue;
+                          currentPage = 1;
+                        });
+
+                        context.read<UserCubit>().fetchComplaints(
+                          pageNo: currentPage,
+                          noOfItems: selectedNoOfItems,
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+
+              // Pagination
+              Pagination(
+                fromDate: null,
+                toDate: null,
+                selectedCategoryId: null,
+                searchQuery: null,
+                noOfItems: selectedNoOfItems,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  //is working
+  //   Widget _buildMobileDashboard() {
+  //   return Column(
+  //     children: [
+  //       ResponsiveFilterRow(),
+  //       Expanded(child: ComplaintListView()),
+  //       Pagination(),
+  //     ],
+  //   );
+  // }
+
+  //is working
+  //   Widget _buildTabletDashboard() {
+
+  //   return Column(
+  //     children: [
+  //       ResponsiveFilterRow(),
+  //       Expanded(child: ComplaintListView()),
+  //       Pagination(),
+  //     ],
+  //   );
+  // }
+  Widget _buildDesktopDashboard() {
+    return Column(
+      children: [
+        ResponsiveFilterRow(),
+        Expanded(child: ComplaintListView()),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  const Text("Items per page: "),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 80, 
+                    height: 40,
+                    child: DropdownButton<int>(
+                      isExpanded: true, 
+                      value: selectedNoOfItems,
+                      items:
+                          [10, 20, 50, 100].map((int value) {
+                            return DropdownMenuItem<int>(
+                              value: value,
+                              child: Text(value.toString()),
+                            );
+                          }).toList(),
+                      onChanged: (int? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            selectedNoOfItems = newValue;
+                            currentPage = 1; // reset to first page
+                          });
+
+                          context.read<UserCubit>().fetchComplaints(
+                            pageNo: currentPage,
+                            noOfItems: selectedNoOfItems,
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
+              
+              Pagination(
+                fromDate: null,
+                toDate: null,
+                selectedCategoryId: null,
+                searchQuery: null,
+                noOfItems: selectedNoOfItems,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
 // Widget _buildDashboardLayout(UserLoaded state) {
 //     return Column(
@@ -116,28 +296,8 @@ class _DashboardState extends State<Dashboard> {
 //     );
 //   }
 
-Widget _buildMobileDashboard() {
-  return Column(
-    children: [
-      ResponsiveFilterRow(),
-      Expanded(child: ComplaintListView()),
-      Pagination(
-        
-      ),
-    ],
-  );
-}
 
-Widget _buildTabletDashboard() {
-  var totalPages;
-  return Column(
-    children: [
-      ResponsiveFilterRow(),
-      Expanded(child: ComplaintListView()),
-      Pagination(),
-    ],
-  );
-}
+
 
 
 //  Widget _buildDesktopDashboard() {
@@ -158,20 +318,26 @@ Widget _buildTabletDashboard() {
 //     );
 //   }
 
-Widget _buildDesktopDashboard() {
-  return Column(
-    children: [
-      ResponsiveFilterRow(),
-      Expanded(child: ComplaintListView()),
-      Pagination(
-  //       fromDate: fromDate,
-  // toDate: toDate,
-  // selectedCategoryId: selectedCategory,
-  // searchQuery: searchController.text,
-  )
-    ],
-  );
-}
+
+
+
+// is working
+
+// Widget _buildDesktopDashboard() {
+//   return Column(
+//     children: [
+//       ResponsiveFilterRow(),
+//       Expanded(child: ComplaintListView()),
+//       Pagination(
+//         //noOfItems: noOfItems,
+//   //       fromDate: fromDate,
+//   // toDate: toDate,
+//   // selectedCategoryId: selectedCategory,
+//   // searchQuery: searchController.text,
+//   )
+//     ],
+//   );
+// }
 
 
 

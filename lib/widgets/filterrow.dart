@@ -18,6 +18,8 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
   String? selectedCategory;
   String? selectedAssignedTo;
 
+  late int noOfItems;
+
   DateTime? fromDate;
   DateTime? toDate;
 
@@ -64,7 +66,9 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
       context.read<UserCubit>().fetchComplaints(
         fromDate: fromDate,
         toDate: toDate,
-        typeComplaintId: selectedCategory,
+        typeComplaintId: selectedCategory, //noOfItems: noOfItems,
+        // pageNo: ,
+        // noOfItems: ,
       );
     }
   }
@@ -217,6 +221,7 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
         fromDate: fromDate,
         toDate: toDate,
         typeComplaintId: selectedCategory,
+       // noOfItems: noOfItems,
       );
       //filterComplaintsBySearch(trimmedSearch);
     });
@@ -322,6 +327,7 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
                         fromDate: fromDate,
                         toDate: toDate,
                         typeComplaintId: selectedCategory,
+                       // noOfItems: noOfItems,
                       );
                     },
                     child: Icon(
@@ -374,6 +380,7 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
               fromDate: fromDate,
               toDate: toDate,
               typeComplaintId: selectedCategory,
+             // noOfItems: noOfItems,
             );
           },
           icon:
@@ -388,6 +395,7 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
                         fromDate: fromDate,
                         toDate: toDate,
                         typeComplaintId: null,
+                       // noOfItems: noOfItems,
                       );
                     },
                     child: Icon(
@@ -462,6 +470,7 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
                     fromDate: null,
                     toDate: toDate,
                     typeComplaintId: selectedCategory,
+                   // noOfItems: noOfItems,
                   );
                 },
                 child: const Icon(
@@ -503,6 +512,7 @@ class _ResponsiveFilterRowState extends State<ResponsiveFilterRow> {
                     fromDate: fromDate,
                     toDate: null,
                     typeComplaintId: selectedCategory,
+                   // noOfItems: noOfItems,
                   );
                 },
                 child: const Icon(
